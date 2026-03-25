@@ -1,5 +1,7 @@
 # MightyClaw
 
+![MightyClaw terminal onboarding screenshot](docs/assets/readme/mightyclaw-setup-terminal.png)
+
 MightyClaw is a local-first personal agent system for real people, not just developers.
 
 It gives you one control plane for your agent, your inboxes, your tools, and your devices. The goal is simple: reduce setup friction, make the system easier to understand, and help non-developer users adopt this kind of technology faster without hiding the real risks.
@@ -193,6 +195,25 @@ For local development:
 
 ```bash
 pnpm gateway:watch
+```
+
+## Keep Dev Separate
+
+If you use the official global OpenClaw install and this dev fork on the same machine, keep the environments separate.
+
+Use these variables for the dev fork:
+
+```bash
+export OPENCLAW_HOME="$HOME"
+export OPENCLAW_STATE_DIR="$HOME/.openclaw-dev"
+export OPENCLAW_CONFIG_PATH="$HOME/.openclaw-dev/openclaw.json"
+export OPENCLAW_PROFILE="devfork"
+```
+
+Clear them when switching back to the official install:
+
+```bash
+unset OPENCLAW_HOME OPENCLAW_STATE_DIR OPENCLAW_CONFIG_PATH OPENCLAW_PROFILE
 ```
 
 ## Contribution Direction
