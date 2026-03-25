@@ -65,6 +65,7 @@ const logConfigUpdated = vi.hoisted(() => vi.fn(() => {}));
 const setupInternalHooks = vi.hoisted(() => vi.fn(async (cfg) => cfg));
 
 const setupChannels = vi.hoisted(() => vi.fn(async (cfg) => cfg));
+const setupSearch = vi.hoisted(() => vi.fn(async (cfg) => cfg));
 const setupSkills = vi.hoisted(() => vi.fn(async (cfg) => cfg));
 const healthCommand = vi.hoisted(() => vi.fn(async () => {}));
 const ensureWorkspaceAndSessions = vi.hoisted(() => vi.fn(async () => {}));
@@ -102,6 +103,10 @@ vi.mock("../commands/onboard-channels.js", () => ({
 
 vi.mock("../commands/onboard-skills.js", () => ({
   setupSkills,
+}));
+
+vi.mock("../commands/onboard-search.js", () => ({
+  setupSearch,
 }));
 
 vi.mock("../agents/auth-profiles.js", () => ({
@@ -314,9 +319,56 @@ describe("runSetupWizard", () => {
 
     expect(select).not.toHaveBeenCalled();
     expect(setupChannels).not.toHaveBeenCalled();
+    expect(setupSearch).not.toHaveBeenCalled();
     expect(setupSkills).not.toHaveBeenCalled();
     expect(healthCommand).not.toHaveBeenCalled();
     expect(runTui).not.toHaveBeenCalled();
+  });
+
+  it("locks interactive terminal onboarding to Ollama and Telegram", async () => {
+    promptAuthChoiceGrouped.mockClear();
+    applyAuthChoice.mockClear();
+    setupChannels.mockClear();
+    setupSearch.mockClear();
+    setupSkills.mockClear();
+    setupInternalHooks.mockClear();
+
+    const select = vi.fn(
+      async (_params: WizardSelectParams<unknown>) => "quickstart",
+    ) as unknown as WizardPrompter["select"];
+    const prompter = buildWizardPrompter({ select });
+    const runtime = createRuntime({ throwsOnExit: true });
+
+    await runSetupWizard(
+      {
+        acceptRisk: true,
+        flow: "quickstart",
+        installDaemon: false,
+        skipHealth: true,
+        skipUi: true,
+      },
+      runtime,
+      prompter,
+    );
+
+    expect(promptAuthChoiceGrouped).not.toHaveBeenCalled();
+    expect(applyAuthChoice).toHaveBeenCalledWith(
+      expect.objectContaining({
+        authChoice: "ollama",
+      }),
+    );
+    expect(setupChannels).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.objectContaining({
+        initialSelection: ["telegram"],
+        visibleChannels: ["telegram"],
+      }),
+    );
+    expect(setupSearch).not.toHaveBeenCalled();
+    expect(setupSkills).not.toHaveBeenCalled();
+    expect(setupInternalHooks).not.toHaveBeenCalled();
   });
 
   async function runTuiHatchTest(params: {

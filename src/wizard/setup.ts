@@ -25,6 +25,9 @@ import { WizardCancelledError, type WizardPrompter } from "./prompts.js";
 import { resolveSetupSecretInputString } from "./setup.secret-input.js";
 import type { QuickstartGatewayDefaults, WizardFlow } from "./setup.types.js";
 
+const TERMINAL_ONBOARDING_MODEL_PROVIDER = "ollama";
+const TERMINAL_ONBOARDING_CHANNELS = ["telegram"] as const;
+
 async function requireRiskAcknowledgement(params: {
   opts: OnboardOptions;
   prompter: WizardPrompter;
@@ -73,6 +76,23 @@ async function requireRiskAcknowledgement(params: {
   if (!ok) {
     throw new WizardCancelledError("risk not accepted");
   }
+}
+
+async function noteTerminalOnboardingFocus(prompter: WizardPrompter): Promise<void> {
+  await prompter.note(
+    [
+      "Terminal onboarding is intentionally minimal right now.",
+      "",
+      "Model provider: Ollama only",
+      "Channel setup: Telegram only",
+      "",
+      "Install Ollama: https://ollama.com/download",
+      "Pull a starter model: ollama pull glm-4.7-flash",
+      "Optional cloud sign-in: ollama signin",
+      "Then make sure Ollama is running before continuing.",
+    ].join("\n"),
+    "Terminal onboarding",
+  );
 }
 
 export async function runSetupWizard(
@@ -430,6 +450,7 @@ export async function runSetupWizard(
         }));
 
   const workspaceDir = resolveUserPath(workspaceInput.trim() || onboardHelpers.DEFAULT_WORKSPACE);
+  const useMinimalTerminalOnboarding = true;
 
   const { applyLocalSetupWorkspaceConfig } = await import("../commands/onboard-config.js");
   let nextConfig: OpenClawConfig = applyLocalSetupWorkspaceConfig(baseConfig, workspaceDir);
@@ -445,15 +466,23 @@ export async function runSetupWizard(
     allowKeychainPrompt: false,
   });
   const authChoiceFromPrompt = opts.authChoice === undefined;
-  const authChoice =
-    opts.authChoice ??
-    (await promptAuthChoiceGrouped({
-      prompter,
-      store: authStore,
-      includeSkip: true,
-      config: nextConfig,
-      workspaceDir,
-    }));
+  if (authChoiceFromPrompt && useMinimalTerminalOnboarding) {
+    await noteTerminalOnboardingFocus(prompter);
+  }
+  const authChoice = opts.authChoice ?? TERMINAL_ONBOARDING_MODEL_PROVIDER;
+  // Keep the broader provider picker close by so re-enabling the full terminal
+  // onboarding surface later is a small, local change.
+  // const authChoice =
+  //   opts.authChoice ??
+  //   (await promptAuthChoiceGrouped({
+  //     prompter,
+  //     store: authStore,
+  //     includeSkip: true,
+  //     config: nextConfig,
+  //     workspaceDir,
+  //   }));
+  void authStore;
+  void promptAuthChoiceGrouped;
 
   if (authChoice === "custom-api-key") {
     const customResult = await promptCustomApiConfig({
@@ -541,6 +570,12 @@ export async function runSetupWizard(
       skipDmPolicyPrompt: flow === "quickstart",
       skipConfirm: flow === "quickstart",
       quickstartDefaults: flow === "quickstart",
+      ...(useMinimalTerminalOnboarding
+        ? {
+            initialSelection: [...TERMINAL_ONBOARDING_CHANNELS],
+            visibleChannels: [...TERMINAL_ONBOARDING_CHANNELS],
+          }
+        : {}),
       secretInputMode: opts.secretInputMode,
     });
   }
@@ -552,7 +587,7 @@ export async function runSetupWizard(
     skipBootstrap: Boolean(nextConfig.agents?.defaults?.skipBootstrap),
   });
 
-  if (opts.skipSearch) {
+  if (opts.skipSearch || useMinimalTerminalOnboarding) {
     await prompter.note("Skipping search setup.", "Search");
   } else {
     const { setupSearch } = await import("../commands/onboard-search.js");
@@ -562,7 +597,7 @@ export async function runSetupWizard(
     });
   }
 
-  if (opts.skipSkills) {
+  if (opts.skipSkills || useMinimalTerminalOnboarding) {
     await prompter.note("Skipping skills setup.", "Skills");
   } else {
     const { setupSkills } = await import("../commands/onboard-skills.js");
@@ -570,8 +605,12 @@ export async function runSetupWizard(
   }
 
   // Setup hooks (session memory on /new)
-  const { setupInternalHooks } = await import("../commands/onboard-hooks.js");
-  nextConfig = await setupInternalHooks(nextConfig, runtime, prompter);
+  if (useMinimalTerminalOnboarding) {
+    await prompter.note("Skipping hooks setup.", "Hooks");
+  } else {
+    const { setupInternalHooks } = await import("../commands/onboard-hooks.js");
+    nextConfig = await setupInternalHooks(nextConfig, runtime, prompter);
+  }
 
   nextConfig = onboardHelpers.applyWizardMetadata(nextConfig, { command: "onboard", mode });
   await writeConfigFile(nextConfig);

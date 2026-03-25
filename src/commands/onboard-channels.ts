@@ -267,14 +267,23 @@ async function noteChannelPrimer(
       blurb: channel.blurb,
     }),
   );
+  const isTelegramOnly = channels.length === 1 && channels[0]?.id === "telegram";
+  const introLines = isTelegramOnly
+    ? [
+        "Start simple :-)",
+        "Telegram is the easiest way to begin.",
+        "Only chats you approve can talk to your bot by default.",
+        "Get Telegram working first, send one test message, then add more channels later.",
+      ]
+    : [
+        "Start simple :-)",
+        "Pick one chat app first and make sure it works.",
+        "Only chats you approve can talk to your bot by default.",
+        "You can add more channels later after the first one feels good.",
+      ];
   await prompter.note(
     [
-      "DM security: default is pairing; unknown DMs get a pairing code.",
-      `Approve with: ${formatCliCommand("openclaw pairing approve <channel> <code>")}`,
-      'Public DMs require dmPolicy="open" + allowFrom=["*"].',
-      "Multi-user DMs: run: " +
-        formatCliCommand('openclaw config set session.dmScope "per-channel-peer"') +
-        ' (or "per-account-channel-peer" for multi-account channels) to isolate sessions.',
+      ...introLines,
       `Docs: ${formatDocsLink("/channels/pairing", "channels/pairing")}`,
       "",
       ...channelLines,
@@ -383,10 +392,20 @@ export async function setupChannels(
   options?: SetupChannelsOptions,
 ): Promise<OpenClawConfig> {
   let next = cfg;
+  const visibleChannels =
+    options?.visibleChannels && options.visibleChannels.length > 0
+      ? new Set(options.visibleChannels)
+      : null;
   const forceAllowFromChannels = new Set(options?.forceAllowFromChannels ?? []);
   const accountOverrides: Partial<Record<ChannelChoice, string>> = {
     ...options?.accountIds,
   };
+  const filterVisibleEntries = <T extends { id: ChannelChoice }>(entries: T[]): T[] =>
+    visibleChannels ? entries.filter((entry) => visibleChannels.has(entry.id)) : entries;
+  const filterVisibleStatusMap = <T>(statusMap: Map<ChannelChoice, T>): Map<ChannelChoice, T> =>
+    visibleChannels
+      ? new Map(Array.from(statusMap.entries()).filter(([channel]) => visibleChannels.has(channel)))
+      : statusMap;
   const scopedPluginsById = new Map<ChannelChoice, ChannelSetupPlugin>();
   const resolveWorkspaceDir = () => resolveAgentWorkspaceDir(next, resolveDefaultAgentId(next));
   const rememberScopedPlugin = (plugin: ChannelSetupPlugin) => {
@@ -463,7 +482,7 @@ export async function setupChannels(
     catalogEntries,
     installedCatalogEntries,
     statusByChannel,
-    statusLines,
+    statusLines: _statusLines,
   } = await collectChannelStatus({
     cfg: next,
     options,
@@ -471,6 +490,10 @@ export async function setupChannels(
     installedPlugins: listVisibleInstalledPlugins(),
     resolveAdapter: getVisibleSetupFlowAdapter,
   });
+  const visibleStatusByChannel = filterVisibleStatusMap(statusByChannel);
+  const statusLines = Array.from(visibleStatusByChannel.values()).flatMap(
+    (entry) => entry.statusLines,
+  );
   if (!options?.skipStatusNote && statusLines.length > 0) {
     await prompter.note(statusLines.join("\n"), "Channel status");
   }
@@ -485,13 +508,15 @@ export async function setupChannels(
     return cfg;
   }
 
-  const corePrimer = listChatChannels().map((meta) => ({
-    id: meta.id,
-    label: meta.label,
-    blurb: meta.blurb,
-  }));
+  const corePrimer = filterVisibleEntries(
+    listChatChannels().map((meta) => ({
+      id: meta.id,
+      label: meta.label,
+      blurb: meta.blurb,
+    })),
+  );
   const coreIds = new Set(corePrimer.map((entry) => entry.id));
-  const primerChannels = [
+  const primerChannels = filterVisibleEntries([
     ...corePrimer,
     ...installedPlugins
       .filter((plugin) => !coreIds.has(plugin.id))
@@ -514,11 +539,11 @@ export async function setupChannels(
         label: entry.meta.label,
         blurb: entry.meta.blurb,
       })),
-  ];
+  ]);
   await noteChannelPrimer(prompter, primerChannels);
 
   const quickstartDefault =
-    options?.initialSelection?.[0] ?? resolveQuickstartDefault(statusByChannel);
+    options?.initialSelection?.[0] ?? resolveQuickstartDefault(visibleStatusByChannel);
 
   const shouldPromptAccountIds = options?.promptAccountIds === true;
   const accountIdsByChannel = new Map<ChannelChoice, string>();
@@ -590,9 +615,21 @@ export async function setupChannels(
       workspaceDir: resolveWorkspaceDir(),
     });
     return {
-      entries: resolved.entries,
-      catalogById: resolved.installableCatalogById,
-      installedCatalogById: resolved.installedCatalogById,
+      entries: filterVisibleEntries(resolved.entries),
+      catalogById: visibleChannels
+        ? new Map(
+            Array.from(resolved.installableCatalogById.entries()).filter(([channel]) =>
+              visibleChannels.has(channel),
+            ),
+          )
+        : resolved.installableCatalogById,
+      installedCatalogById: visibleChannels
+        ? new Map(
+            Array.from(resolved.installedCatalogById.entries()).filter(([channel]) =>
+              visibleChannels.has(channel),
+            ),
+          )
+        : resolved.installedCatalogById,
     };
   };
 

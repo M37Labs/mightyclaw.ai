@@ -311,6 +311,34 @@ describe("setupChannels", () => {
     await expectQuickstartPickerSkipsWithoutRuntime();
   });
 
+  it("limits the QuickStart picker to visible channels when requested", async () => {
+    const select = vi.fn(
+      async ({ message, options }: { message: string; options: Array<{ value: string }> }) => {
+        if (message === "Select channel (QuickStart)") {
+          expect(options.map((option) => option.value)).toEqual(["telegram", "__skip__"]);
+          return "__skip__";
+        }
+        return "__done__";
+      },
+    );
+    const { multiselect, text } = createUnexpectedPromptGuards();
+    const prompter = createPrompter({
+      select: select as unknown as WizardPrompter["select"],
+      multiselect,
+      text,
+    });
+
+    await runSetupChannels({} as OpenClawConfig, prompter, {
+      quickstartDefaults: true,
+      visibleChannels: ["telegram"],
+    });
+
+    expect(select).toHaveBeenCalledWith(
+      expect.objectContaining({ message: "Select channel (QuickStart)" }),
+    );
+    expect(multiselect).not.toHaveBeenCalled();
+  });
+
   it("continues Telegram setup when the plugin registry is empty", async () => {
     // Simulate missing registry entries (the scenario reported in #25545).
     setActivePluginRegistry(createEmptyPluginRegistry());
@@ -349,7 +377,7 @@ describe("setupChannels", () => {
     expect(reloadChannelSetupPluginRegistry).not.toHaveBeenCalled();
   });
 
-  it("shows explicit dmScope config command in channel primer", async () => {
+  it("shows a simple approval-first message in the channel primer", async () => {
     const note = vi.fn(async (_message?: string, _title?: string) => {});
     const select = vi.fn(async () => "__done__");
     const { multiselect, text } = createUnexpectedPromptGuards();
@@ -366,7 +394,7 @@ describe("setupChannels", () => {
     const sawPrimer = note.mock.calls.some(
       ([message, title]) =>
         title === "How channels work" &&
-        String(message).includes('config set session.dmScope "per-channel-peer"'),
+        String(message).includes("Only chats you approve can talk to your bot by default."),
     );
     expect(sawPrimer).toBe(true);
     expect(multiselect).not.toHaveBeenCalled();

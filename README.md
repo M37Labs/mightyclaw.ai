@@ -2,6 +2,10 @@
 
 ![MightyClaw terminal onboarding screenshot](docs/assets/readme/mightyclaw-setup-terminal.png)
 
+> ✈️ **Telegram** + 🦙 **Ollama** first-run path
+>
+> The terminal onboarding is intentionally narrowed for first-time users. It starts with one chat surface and one local model path to limit initial exposure, reduce decision fatigue, and help people get to a working setup before expanding into more channels, providers, skills, or tools.
+
 MightyClaw is a local-first personal agent system for real people, not just developers.
 
 It gives you one control plane for your agent, your inboxes, your tools, and your devices. The goal is simple: reduce setup friction, make the system easier to understand, and help non-developer users adopt this kind of technology faster without hiding the real risks.
