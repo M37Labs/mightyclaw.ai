@@ -15,6 +15,7 @@ const REQUIRED_RUNTIME_SIDECARS = [
   "dist/extensions/matrix/thread-bindings-runtime.js",
   "dist/extensions/msteams/runtime-api.js",
 ] as const;
+const PACKAGE_NAME = "@m37labs/mightyclaw";
 
 type InstalledPackageJson = {
   version?: string;
@@ -32,7 +33,7 @@ export function buildPublishedInstallScenarios(version: string): PublishedInstal
     throw new Error(`Unsupported release version "${version}".`);
   }
 
-  const exactSpec = `openclaw@${version}`;
+  const exactSpec = `${PACKAGE_NAME}@${version}`;
   const scenarios: PublishedInstallScenario[] = [
     {
       name: "fresh-exact",
@@ -41,10 +42,14 @@ export function buildPublishedInstallScenarios(version: string): PublishedInstal
     },
   ];
 
-  if (parsed.channel === "stable" && parsed.correctionNumber !== undefined) {
+  if (
+    parsed.scheme === "calver" &&
+    parsed.channel === "stable" &&
+    parsed.correctionNumber !== undefined
+  ) {
     scenarios.push({
       name: "upgrade-from-base-stable",
-      installSpecs: [`openclaw@${parsed.baseVersion}`, exactSpec],
+      installSpecs: [`${PACKAGE_NAME}@${parsed.baseVersion}`, exactSpec],
       expectedVersion: version,
     });
   }
@@ -106,7 +111,7 @@ function verifyScenario(version: string, scenario: PublishedInstallScenario): vo
     }
 
     const globalRoot = resolveGlobalRoot(prefixDir, workingDir);
-    const packageRoot = join(globalRoot, "openclaw");
+    const packageRoot = join(globalRoot, ...PACKAGE_NAME.split("/"));
     const pkg = JSON.parse(
       readFileSync(join(packageRoot, "package.json"), "utf8"),
     ) as InstalledPackageJson;

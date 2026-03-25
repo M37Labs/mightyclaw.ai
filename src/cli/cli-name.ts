@@ -2,8 +2,8 @@ import path from "node:path";
 
 export const DEFAULT_CLI_NAME = "openclaw";
 
-const KNOWN_CLI_NAMES = new Set([DEFAULT_CLI_NAME]);
-const CLI_PREFIX_RE = /^(?:((?:pnpm|npm|bunx|npx)\s+))?(openclaw)\b/;
+const KNOWN_CLI_NAMES = new Set([DEFAULT_CLI_NAME, "mightyclaw"]);
+const CLI_PREFIX_RE = /^(?:((?:pnpm|npm|bunx|npx)\s+))?(openclaw|mightyclaw)\b/;
 
 export function resolveCliName(argv: string[] = process.argv): string {
   const argv1 = argv[1];
@@ -13,6 +13,10 @@ export function resolveCliName(argv: string[] = process.argv): string {
   const base = path.basename(argv1).trim();
   if (KNOWN_CLI_NAMES.has(base)) {
     return base;
+  }
+  const withoutExtension = base.replace(/\.(?:mjs|js)$/i, "");
+  if (KNOWN_CLI_NAMES.has(withoutExtension)) {
+    return withoutExtension;
   }
   return DEFAULT_CLI_NAME;
 }

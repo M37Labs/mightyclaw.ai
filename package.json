@@ -1,20 +1,20 @@
 {
-  "name": "openclaw",
-  "version": "2026.3.24",
-  "description": "Multi-channel AI gateway with extensible messaging integrations",
+  "name": "@m37labs/mightyclaw",
+  "version": "1.0.1",
+  "description": "MightyClaw CLI and local-first personal agent control plane",
   "keywords": [],
-  "homepage": "https://github.com/openclaw/openclaw#readme",
+  "homepage": "https://github.com/M37Labs/mightyclaw.ai#readme",
   "bugs": {
-    "url": "https://github.com/openclaw/openclaw/issues"
+    "url": "https://github.com/M37Labs/mightyclaw.ai/issues"
   },
   "license": "MIT",
-  "author": "",
+  "author": "M37Labs",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/openclaw/openclaw.git"
+    "url": "git+https://github.com/M37Labs/mightyclaw.ai.git"
   },
   "bin": {
-    "openclaw": "openclaw.mjs"
+    "mightyclaw": "mightyclaw.mjs"
   },
   "directories": {
     "doc": "docs",
@@ -24,6 +24,7 @@
     "CHANGELOG.md",
     "LICENSE",
     "openclaw.mjs",
+    "mightyclaw.mjs",
     "README-header.png",
     "README.md",
     "assets/",
@@ -574,7 +575,10 @@
       "default": "./dist/plugin-sdk/zalouser.js"
     },
     "./extension-api": "./dist/extensionAPI.js",
-    "./cli-entry": "./openclaw.mjs"
+    "./cli-entry": "./mightyclaw.mjs"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "android:assemble": "cd apps/android && ./gradlew :app:assemblePlayDebug",

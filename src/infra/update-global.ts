@@ -13,10 +13,10 @@ export type CommandRunner = (
   options: { timeoutMs: number; cwd?: string; env?: NodeJS.ProcessEnv },
 ) => Promise<{ stdout: string; stderr: string; code: number | null }>;
 
-const PRIMARY_PACKAGE_NAME = "openclaw";
-const ALL_PACKAGE_NAMES = [PRIMARY_PACKAGE_NAME] as const;
+const PRIMARY_PACKAGE_NAME = "@m37labs/mightyclaw";
+const ALL_PACKAGE_NAMES = ["openclaw", PRIMARY_PACKAGE_NAME] as const;
 const GLOBAL_RENAME_PREFIX = ".";
-export const OPENCLAW_MAIN_PACKAGE_SPEC = "github:openclaw/openclaw#main";
+export const OPENCLAW_MAIN_PACKAGE_SPEC = "github:M37Labs/mightyclaw.ai#main";
 const NPM_GLOBAL_INSTALL_QUIET_FLAGS = ["--no-fund", "--no-audit", "--loglevel=error"] as const;
 const NPM_GLOBAL_INSTALL_OMIT_OPTIONAL_FLAGS = [
   "--omit=optional",
@@ -206,7 +206,7 @@ export async function resolveGlobalPackageRoot(
   if (!root) {
     return null;
   }
-  return path.join(root, PRIMARY_PACKAGE_NAME);
+  return path.join(root, ...PRIMARY_PACKAGE_NAME.split("/"));
 }
 
 export async function detectGlobalInstallManagerForRoot(

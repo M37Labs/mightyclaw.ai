@@ -310,7 +310,7 @@ export async function fetchNpmPackageTargetStatus(params: {
   const target = params.target;
   try {
     const res = await fetchWithTimeout(
-      `https://registry.npmjs.org/openclaw/${encodeURIComponent(target)}`,
+      `https://registry.npmjs.org/%40m37labs%2Fmightyclaw/${encodeURIComponent(target)}`,
       {},
       Math.max(250, timeoutMs),
     );

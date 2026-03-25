@@ -5,6 +5,9 @@ import { access } from "node:fs/promises";
 import module from "node:module";
 import { fileURLToPath } from "node:url";
 
+const CLI_NAME = "mightyclaw";
+const RELEASE_PACKAGE_NAME = "@m37labs/mightyclaw";
+const RELEASE_REPOSITORY = "github:M37Labs/mightyclaw.ai";
 const MIN_NODE_MAJOR = 22;
 const MIN_NODE_MINOR = 12;
 const MIN_NODE_VERSION = `${MIN_NODE_MAJOR}.${MIN_NODE_MINOR}`;
@@ -27,7 +30,7 @@ const ensureSupportedNodeVersion = () => {
   }
 
   process.stderr.write(
-    `openclaw: Node.js v${MIN_NODE_VERSION}+ is required (current: v${process.versions.node}).\n` +
+    `${CLI_NAME}: Node.js v${MIN_NODE_VERSION}+ is required (current: v${process.versions.node}).\n` +
       "If you use nvm, run:\n" +
       `  nvm install ${MIN_NODE_MAJOR}\n` +
       `  nvm use ${MIN_NODE_MAJOR}\n` +
@@ -38,7 +41,6 @@ const ensureSupportedNodeVersion = () => {
 
 ensureSupportedNodeVersion();
 
-// https://nodejs.org/api/module.html#module-compile-cache
 if (module.enableCompileCache && !process.env.NODE_DISABLE_COMPILE_CACHE) {
   try {
     module.enableCompileCache();
@@ -69,7 +71,6 @@ const isDirectModuleNotFoundError = (err, specifier) => {
 };
 
 const installProcessWarningFilter = async () => {
-  // Keep bootstrap warnings consistent with the TypeScript runtime.
   for (const specifier of ["./dist/warning-filter.js", "./dist/warning-filter.mjs"]) {
     try {
       const mod = await import(specifier);
@@ -91,7 +92,6 @@ const tryImport = async (specifier) => {
     await import(specifier);
     return true;
   } catch (err) {
-    // Only swallow direct entry misses; rethrow transitive resolution failures.
     if (isDirectModuleNotFoundError(err, specifier)) {
       return false;
     }
@@ -109,7 +109,7 @@ const exists = async (specifier) => {
 };
 
 const buildMissingEntryErrorMessage = async () => {
-  const lines = ["openclaw: missing dist/entry.(m)js (build output)."];
+  const lines = [`${CLI_NAME}: missing dist/entry.(m)js (build output).`];
   if (!(await exists("./src/entry.ts"))) {
     return lines.join("\n");
   }
@@ -119,22 +119,25 @@ const buildMissingEntryErrorMessage = async () => {
     "Build locally with `pnpm install && pnpm build`, or install the published MightyClaw package instead.",
   );
   lines.push(
-    "For pinned GitHub installs, use `npm install -g github:M37Labs/mightyclaw.ai#<ref>` instead of a raw `/archive/<ref>.tar.gz` URL.",
+    `For pinned GitHub installs, use \`npm install -g ${RELEASE_REPOSITORY}#<ref>\` instead of a raw \`/archive/<ref>.tar.gz\` URL.`,
   );
-  lines.push("For releases, use `npm install -g @m37labs/mightyclaw@latest`.");
+  lines.push(`For releases, use \`npm install -g ${RELEASE_PACKAGE_NAME}@latest\`.`);
   return lines.join("\n");
 };
 
 const isBareRootHelpInvocation = (argv) =>
   argv.length === 3 && (argv[2] === "--help" || argv[2] === "-h");
+const isBareRootVersionInvocation = (argv) =>
+  argv.length === 3 && (argv[2] === "--version" || argv[2] === "-V");
 
 const loadPrecomputedRootHelpText = () => {
   try {
     const raw = readFileSync(new URL("./dist/cli-startup-metadata.json", import.meta.url), "utf8");
     const parsed = JSON.parse(raw);
-    return typeof parsed?.rootHelpText === "string" && parsed.rootHelpText.length > 0
-      ? parsed.rootHelpText
-      : null;
+    if (typeof parsed?.rootHelpText !== "string" || parsed.rootHelpText.length === 0) {
+      return null;
+    }
+    return parsed.rootHelpText.replace(/\bopenclaw\b/g, CLI_NAME);
   } catch {
     return null;
   }
@@ -153,7 +156,13 @@ const tryOutputBareRootHelp = async () => {
     try {
       const mod = await import(specifier);
       if (typeof mod.outputRootHelp === "function") {
-        mod.outputRootHelp();
+        const originalArgv1 = process.argv[1];
+        process.argv[1] = CLI_NAME;
+        try {
+          mod.outputRootHelp();
+        } finally {
+          process.argv[1] = originalArgv1;
+        }
         return true;
       }
     } catch (err) {
@@ -166,7 +175,36 @@ const tryOutputBareRootHelp = async () => {
   return false;
 };
 
-if (await tryOutputBareRootHelp()) {
+const tryOutputBareRootVersion = async () => {
+  if (!isBareRootVersionInvocation(process.argv)) {
+    return false;
+  }
+  const pkgRaw = readFileSync(new URL("./package.json", import.meta.url), "utf8");
+  const pkg = JSON.parse(pkgRaw);
+  const version =
+    typeof pkg?.version === "string" && pkg.version.trim() ? pkg.version.trim() : null;
+  if (!version) {
+    return false;
+  }
+  try {
+    const gitModule = await import("./dist/infra/git-commit.js").catch(
+      () => import("./dist/infra/git-commit.mjs"),
+    );
+    const commit =
+      typeof gitModule?.resolveCommitHash === "function"
+        ? gitModule.resolveCommitHash({ moduleUrl: import.meta.url })
+        : null;
+    process.stdout.write(
+      commit ? `MightyClaw ${version} (${commit})\n` : `MightyClaw ${version}\n`,
+    );
+    return true;
+  } catch {
+    process.stdout.write(`MightyClaw ${version}\n`);
+    return true;
+  }
+};
+
+if ((await tryOutputBareRootHelp()) || (await tryOutputBareRootVersion())) {
   // OK
 } else {
   await installProcessWarningFilter();

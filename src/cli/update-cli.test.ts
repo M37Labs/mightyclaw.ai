@@ -220,10 +220,44 @@ describe("update-cli", () => {
 
   const expectPackageInstallSpec = (spec: string) => {
     expect(runGatewayUpdate).not.toHaveBeenCalled();
-    expect(runCommandWithTimeout).toHaveBeenCalledWith(
+    expect(vi.mocked(runCommandWithTimeout).mock.calls).toContainEqual([
       ["npm", "i", "-g", spec, "--no-fund", "--no-audit", "--loglevel=error"],
       expect.any(Object),
+    ] as never);
+  };
+
+  const expectPackageInstallLatest = () => {
+    expectPackageInstallSpec("@m37labs/mightyclaw@latest");
+  };
+
+  const expectDidNotInstallLatest = () => {
+    expect(vi.mocked(runCommandWithTimeout).mock.calls).not.toContainEqual([
+      [
+        "npm",
+        "i",
+        "-g",
+        "@m37labs/mightyclaw@latest",
+        "--no-fund",
+        "--no-audit",
+        "--loglevel=error",
+      ],
+      expect.any(Object),
+    ] as never);
+  };
+
+  const resolveScopedPackageRoot = (root: string) => {
+    return path.join(root, "node_modules", "@m37labs", "mightyclaw");
+  };
+
+  const seedScopedPackageRoot = async (root: string, version: string) => {
+    const pkgRoot = resolveScopedPackageRoot(root);
+    await fs.mkdir(pkgRoot, { recursive: true });
+    await fs.writeFile(
+      path.join(pkgRoot, "package.json"),
+      JSON.stringify({ name: "@m37labs/mightyclaw", version }),
+      "utf-8",
     );
+    return pkgRoot;
   };
 
   const makeOkUpdateResult = (overrides: Partial<UpdateRunResult> = {}): UpdateRunResult =>
@@ -351,7 +385,7 @@ describe("update-cli", () => {
       killed: false,
       termination: "exit",
     });
-    readPackageName.mockResolvedValue("openclaw");
+    readPackageName.mockResolvedValue("@m37labs/mightyclaw");
     readPackageVersion.mockResolvedValue("1.0.0");
     resolveGlobalManager.mockResolvedValue("npm");
     serviceLoaded.mockResolvedValue(false);
@@ -546,10 +580,7 @@ describe("update-cli", () => {
         }
       } else {
         expect(runGatewayUpdate).not.toHaveBeenCalled();
-        expect(runCommandWithTimeout).toHaveBeenCalledWith(
-          ["npm", "i", "-g", "openclaw@latest", "--no-fund", "--no-audit", "--loglevel=error"],
-          expect.any(Object),
-        );
+        expectPackageInstallLatest();
       }
 
       if (expectedPersistedChannel !== undefined) {
@@ -577,10 +608,7 @@ describe("update-cli", () => {
     await updateCommand({});
 
     expect(runGatewayUpdate).not.toHaveBeenCalled();
-    expect(runCommandWithTimeout).toHaveBeenCalledWith(
-      ["npm", "i", "-g", "openclaw@latest", "--no-fund", "--no-audit", "--loglevel=error"],
-      expect.any(Object),
-    );
+    expectPackageInstallLatest();
   });
 
   it("blocks package updates when the target requires a newer Node runtime", async () => {
@@ -595,15 +623,12 @@ describe("update-cli", () => {
     await updateCommand({ yes: true });
 
     expect(runGatewayUpdate).not.toHaveBeenCalled();
-    expect(runCommandWithTimeout).not.toHaveBeenCalledWith(
-      ["npm", "i", "-g", "openclaw@latest", "--no-fund", "--no-audit", "--loglevel=error"],
-      expect.any(Object),
-    );
+    expectDidNotInstallLatest();
     expect(defaultRuntime.exit).toHaveBeenCalledWith(1);
     const errors = vi.mocked(defaultRuntime.error).mock.calls.map((call) => String(call[0]));
     expect(errors.join("\n")).toContain("Node ");
     expect(errors.join("\n")).toContain(
-      "Bare `npm i -g openclaw` can silently install an older compatible release.",
+      "Bare `npm i -g @m37labs/mightyclaw` can silently install an older compatible release.",
     );
   });
 
@@ -615,7 +640,7 @@ describe("update-cli", () => {
           mockPackageInstallStatus(createCaseDir("openclaw-update"));
           await updateCommand({ tag: "next" });
         },
-        expectedSpec: "openclaw@next",
+        expectedSpec: "@m37labs/mightyclaw@next",
       },
       {
         name: "main shorthand",
@@ -623,15 +648,15 @@ describe("update-cli", () => {
           mockPackageInstallStatus(createCaseDir("openclaw-update"));
           await updateCommand({ yes: true, tag: "main" });
         },
-        expectedSpec: "github:openclaw/openclaw#main",
+        expectedSpec: "github:M37Labs/mightyclaw.ai#main",
       },
       {
         name: "explicit git package spec",
         run: async () => {
           mockPackageInstallStatus(createCaseDir("openclaw-update"));
-          await updateCommand({ yes: true, tag: "github:openclaw/openclaw#main" });
+          await updateCommand({ yes: true, tag: "github:M37Labs/mightyclaw.ai#main" });
         },
-        expectedSpec: "github:openclaw/openclaw#main",
+        expectedSpec: "github:M37Labs/mightyclaw.ai#main",
       },
       {
         name: "OPENCLAW_UPDATE_PACKAGE_SPEC override",
@@ -648,7 +673,7 @@ describe("update-cli", () => {
       },
     ]) {
       vi.clearAllMocks();
-      readPackageName.mockResolvedValue("openclaw");
+      readPackageName.mockResolvedValue("@m37labs/mightyclaw");
       readPackageVersion.mockResolvedValue("1.0.0");
       resolveGlobalManager.mockResolvedValue("npm");
       vi.mocked(resolveOpenClawPackageRoot).mockResolvedValue(process.cwd());
@@ -660,14 +685,8 @@ describe("update-cli", () => {
   it("fails package updates when the installed correction version does not match the requested target", async () => {
     const tempDir = createCaseDir("openclaw-update");
     const nodeModules = path.join(tempDir, "node_modules");
-    const pkgRoot = path.join(nodeModules, "openclaw");
     mockPackageInstallStatus(tempDir);
-    await fs.mkdir(pkgRoot, { recursive: true });
-    await fs.writeFile(
-      path.join(pkgRoot, "package.json"),
-      JSON.stringify({ name: "openclaw", version: "2026.3.23" }),
-      "utf-8",
-    );
+    const pkgRoot = await seedScopedPackageRoot(tempDir, "2026.3.23");
     for (const relativePath of BUNDLED_RUNTIME_SIDECAR_PATHS) {
       const absolutePath = path.join(pkgRoot, relativePath);
       await fs.mkdir(path.dirname(absolutePath), { recursive: true });

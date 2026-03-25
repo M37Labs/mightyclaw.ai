@@ -410,6 +410,45 @@ describe("runSetupWizard", () => {
     }
   });
 
+  it("shows the simplified security note before interactive setup", async () => {
+    const note: WizardPrompter["note"] = vi.fn(async () => {});
+    const confirm: WizardPrompter["confirm"] = vi.fn(async () => true);
+    const prompter = buildWizardPrompter({ note, confirm });
+    const runtime = createRuntime();
+
+    await runSetupWizard(
+      {
+        flow: "quickstart",
+        authChoice: "skip",
+        installDaemon: false,
+        skipProviders: true,
+        skipSkills: true,
+        skipSearch: true,
+        skipHealth: true,
+        skipUi: true,
+      },
+      runtime,
+      prompter,
+    );
+
+    const securityCall = (note as unknown as { mock: { calls: unknown[][] } }).mock.calls.find(
+      (call) => call?.[1] === "Security",
+    );
+    expect(securityCall).toBeDefined();
+    const text = typeof securityCall?.[0] === "string" ? securityCall[0] : "";
+    expect(text).toContain("Yes, it is safe");
+    expect(text).toContain("Yes, it stands on giants");
+    expect(text).toContain("Running them matters more than memorizing every line of output.");
+    expect(text).toContain("critical issues");
+    expect(text).toContain("mightyclaw.ai/gateway/security");
+    expect(confirm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message:
+          "I understand MightyClaw is best used as a personal, carefully configured system. Continue?",
+      }),
+    );
+  });
+
   it("prompts for a model during explicit interactive Ollama setup", async () => {
     promptDefaultModel.mockClear();
     const prompter = buildWizardPrompter({});

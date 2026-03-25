@@ -62,23 +62,23 @@ describe("update global helpers", () => {
       path.join(".bun", "install", "global", "node_modules"),
     );
     await expect(resolveGlobalPackageRoot("npm", runCommand, 1000)).resolves.toBe(
-      path.join("/tmp/npm-root", "openclaw"),
+      path.join("/tmp/npm-root", "@m37labs", "mightyclaw"),
     );
   });
 
   it("maps main and explicit install specs for global installs", () => {
-    expect(resolveGlobalInstallSpec({ packageName: "openclaw", tag: "main" })).toBe(
+    expect(resolveGlobalInstallSpec({ packageName: "@m37labs/mightyclaw", tag: "main" })).toBe(
       OPENCLAW_MAIN_PACKAGE_SPEC,
     );
     expect(
       resolveGlobalInstallSpec({
-        packageName: "openclaw",
-        tag: "github:openclaw/openclaw#feature/my-branch",
+        packageName: "@m37labs/mightyclaw",
+        tag: "github:M37Labs/mightyclaw.ai#feature/my-branch",
       }),
-    ).toBe("github:openclaw/openclaw#feature/my-branch");
+    ).toBe("github:M37Labs/mightyclaw.ai#feature/my-branch");
     expect(
       resolveGlobalInstallSpec({
-        packageName: "openclaw",
+        packageName: "@m37labs/mightyclaw",
         tag: "https://example.com/openclaw-main.tgz",
       }),
     ).toBe("https://example.com/openclaw-main.tgz");
@@ -89,7 +89,7 @@ describe("update global helpers", () => {
     expect(isMainPackageTarget(" MAIN ")).toBe(true);
     expect(isMainPackageTarget("beta")).toBe(false);
 
-    expect(isExplicitPackageInstallSpec("github:openclaw/openclaw#main")).toBe(true);
+    expect(isExplicitPackageInstallSpec("github:M37Labs/mightyclaw.ai#main")).toBe(true);
     expect(isExplicitPackageInstallSpec("https://example.com/openclaw-main.tgz")).toBe(true);
     expect(isExplicitPackageInstallSpec("file:/tmp/openclaw-main.tgz")).toBe(true);
     expect(isExplicitPackageInstallSpec("beta")).toBe(false);
@@ -97,7 +97,9 @@ describe("update global helpers", () => {
     expect(canResolveRegistryVersionForPackageTarget("latest")).toBe(true);
     expect(canResolveRegistryVersionForPackageTarget("2026.3.22")).toBe(true);
     expect(canResolveRegistryVersionForPackageTarget("main")).toBe(false);
-    expect(canResolveRegistryVersionForPackageTarget("github:openclaw/openclaw#main")).toBe(false);
+    expect(canResolveRegistryVersionForPackageTarget("github:M37Labs/mightyclaw.ai#main")).toBe(
+      false,
+    );
   });
 
   it("detects install managers from resolved roots and on-disk presence", async () => {
@@ -105,10 +107,10 @@ describe("update global helpers", () => {
     const npmRoot = path.join(base, "npm-root");
     const pnpmRoot = path.join(base, "pnpm-root");
     const bunRoot = path.join(base, ".bun", "install", "global", "node_modules");
-    const pkgRoot = path.join(pnpmRoot, "openclaw");
+    const pkgRoot = path.join(pnpmRoot, "@m37labs", "mightyclaw");
     await fs.mkdir(pkgRoot, { recursive: true });
-    await fs.mkdir(path.join(npmRoot, "openclaw"), { recursive: true });
-    await fs.mkdir(path.join(bunRoot, "openclaw"), { recursive: true });
+    await fs.mkdir(path.join(npmRoot, "@m37labs", "mightyclaw"), { recursive: true });
+    await fs.mkdir(path.join(bunRoot, "@m37labs", "mightyclaw"), { recursive: true });
 
     envSnapshot = captureEnv(["BUN_INSTALL"]);
     process.env.BUN_INSTALL = path.join(base, ".bun");
@@ -128,45 +130,45 @@ describe("update global helpers", () => {
     );
     await expect(detectGlobalInstallManagerByPresence(runCommand, 1000)).resolves.toBe("npm");
 
-    await fs.rm(path.join(npmRoot, "openclaw"), { recursive: true, force: true });
-    await fs.rm(path.join(pnpmRoot, "openclaw"), { recursive: true, force: true });
+    await fs.rm(path.join(npmRoot, "@m37labs"), { recursive: true, force: true });
+    await fs.rm(path.join(pnpmRoot, "@m37labs"), { recursive: true, force: true });
     await expect(detectGlobalInstallManagerByPresence(runCommand, 1000)).resolves.toBe("bun");
   });
 
   it("builds install argv and npm fallback argv", () => {
-    expect(globalInstallArgs("npm", "openclaw@latest")).toEqual([
+    expect(globalInstallArgs("npm", "@m37labs/mightyclaw@latest")).toEqual([
       "npm",
       "i",
       "-g",
-      "openclaw@latest",
+      "@m37labs/mightyclaw@latest",
       "--no-fund",
       "--no-audit",
       "--loglevel=error",
     ]);
-    expect(globalInstallArgs("pnpm", "openclaw@latest")).toEqual([
+    expect(globalInstallArgs("pnpm", "@m37labs/mightyclaw@latest")).toEqual([
       "pnpm",
       "add",
       "-g",
-      "openclaw@latest",
+      "@m37labs/mightyclaw@latest",
     ]);
-    expect(globalInstallArgs("bun", "openclaw@latest")).toEqual([
+    expect(globalInstallArgs("bun", "@m37labs/mightyclaw@latest")).toEqual([
       "bun",
       "add",
       "-g",
-      "openclaw@latest",
+      "@m37labs/mightyclaw@latest",
     ]);
 
-    expect(globalInstallFallbackArgs("npm", "openclaw@latest")).toEqual([
+    expect(globalInstallFallbackArgs("npm", "@m37labs/mightyclaw@latest")).toEqual([
       "npm",
       "i",
       "-g",
-      "openclaw@latest",
+      "@m37labs/mightyclaw@latest",
       "--omit=optional",
       "--no-fund",
       "--no-audit",
       "--loglevel=error",
     ]);
-    expect(globalInstallFallbackArgs("pnpm", "openclaw@latest")).toBeNull();
+    expect(globalInstallFallbackArgs("pnpm", "@m37labs/mightyclaw@latest")).toBeNull();
   });
 
   it("cleans only renamed package directories", async () => {
@@ -192,7 +194,7 @@ describe("update global helpers", () => {
     const packageRoot = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-update-global-pkg-"));
     await fs.writeFile(
       path.join(packageRoot, "package.json"),
-      JSON.stringify({ name: "openclaw", version: "1.0.0" }),
+      JSON.stringify({ name: "@m37labs/mightyclaw", version: "1.0.0" }),
       "utf-8",
     );
     for (const relativePath of BUNDLED_RUNTIME_SIDECAR_PATHS) {

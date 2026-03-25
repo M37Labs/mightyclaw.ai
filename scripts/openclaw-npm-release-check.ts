@@ -12,6 +12,7 @@ type PackageJson = {
   license?: string;
   repository?: { url?: string } | string;
   bin?: Record<string, string>;
+  publishConfig?: { access?: string };
   peerDependencies?: Record<string, string>;
   peerDependenciesMeta?: Record<string, { optional?: boolean }>;
 };
@@ -20,12 +21,13 @@ export type ParsedReleaseVersion = {
   version: string;
   baseVersion: string;
   channel: "stable" | "beta";
-  year: number;
-  month: number;
-  day: number;
+  scheme: "calver" | "semver";
+  year?: number;
+  month?: number;
+  day?: number;
   betaNumber?: number;
   correctionNumber?: number;
-  date: Date;
+  date?: Date;
 };
 
 export type ParsedReleaseTag = {
@@ -42,7 +44,10 @@ const BETA_VERSION_REGEX =
   /^(?<year>\d{4})\.(?<month>[1-9]\d?)\.(?<day>[1-9]\d?)-beta\.(?<beta>[1-9]\d*)$/;
 const CORRECTION_VERSION_REGEX =
   /^(?<year>\d{4})\.(?<month>[1-9]\d?)\.(?<day>[1-9]\d?)-(?<correction>[1-9]\d*)$/;
-const EXPECTED_REPOSITORY_URL = "https://github.com/openclaw/openclaw";
+const SEMVER_STABLE_REGEX = /^(?<major>0|[1-9]\d*)\.(?<minor>0|[1-9]\d*)\.(?<patch>0|[1-9]\d*)$/;
+const SEMVER_BETA_REGEX =
+  /^(?<major>0|[1-9]\d*)\.(?<minor>0|[1-9]\d*)\.(?<patch>0|[1-9]\d*)-beta\.(?<beta>[1-9]\d*)$/;
+const EXPECTED_REPOSITORY_URL = "https://github.com/M37Labs/mightyclaw.ai";
 const MAX_CALVER_DISTANCE_DAYS = 2;
 const REQUIRED_PACKED_PATHS = ["dist/control-ui/index.html"];
 const CONTROL_UI_ASSET_PREFIX = "dist/control-ui/assets/";
@@ -98,11 +103,38 @@ function parseDateParts(
     version,
     baseVersion: `${year}.${month}.${day}`,
     channel,
+    scheme: "calver",
     year,
     month,
     day,
     betaNumber,
     date,
+  };
+}
+
+function parseSemverParts(
+  version: string,
+  groups: Record<string, string | undefined>,
+  channel: "stable" | "beta",
+): ParsedReleaseVersion | null {
+  const major = Number.parseInt(groups.major ?? "", 10);
+  const minor = Number.parseInt(groups.minor ?? "", 10);
+  const patch = Number.parseInt(groups.patch ?? "", 10);
+  const betaNumber = channel === "beta" ? Number.parseInt(groups.beta ?? "", 10) : undefined;
+
+  if (!Number.isInteger(major) || !Number.isInteger(minor) || !Number.isInteger(patch)) {
+    return null;
+  }
+  if (channel === "beta" && (!Number.isInteger(betaNumber) || (betaNumber ?? 0) < 1)) {
+    return null;
+  }
+
+  return {
+    version,
+    baseVersion: `${major}.${minor}.${patch}`,
+    channel,
+    scheme: "semver",
+    betaNumber,
   };
 }
 
@@ -136,6 +168,16 @@ export function parseReleaseVersion(version: string): ParsedReleaseVersion | nul
     };
   }
 
+  const semverStableMatch = SEMVER_STABLE_REGEX.exec(trimmed);
+  if (semverStableMatch?.groups) {
+    return parseSemverParts(trimmed, semverStableMatch.groups, "stable");
+  }
+
+  const semverBetaMatch = SEMVER_BETA_REGEX.exec(trimmed);
+  if (semverBetaMatch?.groups) {
+    return parseSemverParts(trimmed, semverBetaMatch.groups, "beta");
+  }
+
   return null;
 }
 
@@ -152,7 +194,7 @@ export function parseReleaseTagVersion(version: string): ParsedReleaseTag | null
       packageVersion: parsedVersion.version,
       baseVersion: parsedVersion.baseVersion,
       channel: parsedVersion.channel,
-      date: parsedVersion.date,
+      date: parsedVersion.date ?? new Date(0),
       correctionNumber: parsedVersion.correctionNumber,
     };
   }
@@ -174,8 +216,8 @@ export function collectReleasePackageMetadataErrors(pkg: PackageJson): string[] 
   );
   const errors: string[] = [];
 
-  if (pkg.name !== "openclaw") {
-    errors.push(`package.json name must be "openclaw"; found "${pkg.name ?? ""}".`);
+  if (pkg.name !== "@m37labs/mightyclaw") {
+    errors.push(`package.json name must be "@m37labs/mightyclaw"; found "${pkg.name ?? ""}".`);
   }
   if (!pkg.description?.trim()) {
     errors.push("package.json description must be non-empty.");
@@ -190,9 +232,14 @@ export function collectReleasePackageMetadataErrors(pkg: PackageJson): string[] 
       }.`,
     );
   }
-  if (pkg.bin?.openclaw !== "openclaw.mjs") {
+  if (pkg.bin?.mightyclaw !== "mightyclaw.mjs") {
     errors.push(
-      `package.json bin.openclaw must be "openclaw.mjs"; found "${pkg.bin?.openclaw ?? ""}".`,
+      `package.json bin.mightyclaw must be "mightyclaw.mjs"; found "${pkg.bin?.mightyclaw ?? ""}".`,
+    );
+  }
+  if (pkg.publishConfig?.access !== "public") {
+    errors.push(
+      `package.json publishConfig.access must be "public"; found "${pkg.publishConfig?.access ?? ""}".`,
     );
   }
   if (pkg.peerDependencies?.["node-llama-cpp"] !== "3.18.1") {
@@ -224,7 +271,7 @@ export function collectReleaseTagErrors(params: {
   const parsedVersion = parseReleaseVersion(packageVersion);
   if (parsedVersion === null) {
     errors.push(
-      `package.json version must match YYYY.M.D, YYYY.M.D-N, or YYYY.M.D-beta.N; found "${packageVersion || "<missing>"}".`,
+      `package.json version must match semver (for example 1.0.1 or 1.0.1-beta.1) or legacy CalVer (YYYY.M.D, YYYY.M.D-N, YYYY.M.D-beta.N); found "${packageVersion || "<missing>"}".`,
     );
   }
 
@@ -236,7 +283,7 @@ export function collectReleaseTagErrors(params: {
   const parsedTag = parseReleaseTagVersion(tagVersion);
   if (parsedTag === null) {
     errors.push(
-      `Release tag must match vYYYY.M.D, vYYYY.M.D-beta.N, or fallback correction tag vYYYY.M.D-N; found "${releaseTag || "<missing>"}".`,
+      `Release tag must match v<package-version>; for example v1.0.1, v1.0.1-beta.1, or legacy CalVer tags. Found "${releaseTag || "<missing>"}".`,
     );
   }
 
@@ -262,7 +309,7 @@ export function collectReleaseTagErrors(params: {
     );
   }
 
-  if (parsedVersion !== null) {
+  if (parsedVersion?.scheme === "calver" && parsedVersion.date) {
     const dayDistance = utcCalendarDayDistance(parsedVersion.date, now);
     if (dayDistance > MAX_CALVER_DISTANCE_DAYS) {
       const nowLabel = now.toISOString().slice(0, 10);
@@ -471,7 +518,9 @@ function main(): number {
   const parsedVersion = parseReleaseVersion(pkg.version ?? "");
   const channel = parsedVersion?.channel ?? "unknown";
   const dayDistance =
-    parsedVersion === null ? "unknown" : String(utcCalendarDayDistance(parsedVersion.date, now));
+    parsedVersion?.scheme === "calver" && parsedVersion.date
+      ? String(utcCalendarDayDistance(parsedVersion.date, now))
+      : "n/a";
   console.log(
     `openclaw-npm-release-check: validated ${channel} release ${pkg.version} (${dayDistance} day UTC delta).`,
   );

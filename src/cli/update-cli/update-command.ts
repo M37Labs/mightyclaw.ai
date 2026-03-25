@@ -152,9 +152,9 @@ async function resolvePackageRuntimePreflightError(params: {
   return [
     `Node ${process.versions.node ?? "unknown"} is too old for ${PRODUCT_BRAND_NAME} (${targetLabel}).`,
     `The requested package requires ${status.nodeEngine}.`,
-    "Upgrade Node to 22.14+ or Node 24, then rerun `openclaw update`.",
-    "Bare `npm i -g openclaw` can silently install an older compatible release.",
-    "After upgrading Node, use `npm i -g openclaw@latest`.",
+    `Upgrade Node to 22.14+ or Node 24, then rerun \`${replaceCliName("openclaw update", CLI_NAME)}\`.`,
+    "Bare `npm i -g @m37labs/mightyclaw` can silently install an older compatible release.",
+    "After upgrading Node, use `npm i -g @m37labs/mightyclaw@latest`.",
   ].join("\n");
 }
 
@@ -993,7 +993,7 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
       );
       defaultRuntime.log(
         theme.muted(
-          `Examples: \`${replaceCliName("npm i -g openclaw@latest", CLI_NAME)}\` or \`${replaceCliName("pnpm add -g openclaw@latest", CLI_NAME)}\``,
+          "Examples: `npm i -g @m37labs/mightyclaw@latest` or `pnpm add -g @m37labs/mightyclaw@latest`",
         ),
       );
     }

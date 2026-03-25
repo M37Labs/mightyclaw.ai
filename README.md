@@ -72,9 +72,9 @@ Today:
 
 - The product language in this fork is moving to MightyClaw and M37Labs.
 - The first-run terminal and dashboard experience have already been reworked.
-- The underlying npm package name and CLI command are still `openclaw` for compatibility.
-
-That means you will still install and run the existing package and command for now.
+- The published npm package is `@m37labs/mightyclaw`.
+- The installed global CLI command is `mightyclaw`.
+- Local source development in this repo still uses `pnpm openclaw`.
 
 ## Quick Start
 
@@ -87,19 +87,19 @@ Runtime baseline:
 Install:
 
 ```bash
-npm install -g openclaw@latest
+npm install -g @m37labs/mightyclaw@latest
 ```
 
 Run onboarding:
 
 ```bash
-openclaw onboard --install-daemon
+mightyclaw onboard --install-daemon
 ```
 
 Open the dashboard later:
 
 ```bash
-openclaw dashboard --no-open
+mightyclaw dashboard --no-open
 ```
 
 ## First-Time User Path
@@ -107,7 +107,7 @@ openclaw dashboard --no-open
 If you are new, the simplest path is:
 
 1. Install the CLI.
-2. Run `openclaw onboard --install-daemon`.
+2. Run `mightyclaw onboard --install-daemon`.
 3. Follow the guided setup for gateway auth, workspace, channels, and skills.
 4. Open the dashboard and verify you can connect.
 5. Add one channel first, not five.
@@ -159,9 +159,9 @@ Good baseline rules:
 Useful commands:
 
 ```bash
-openclaw doctor
-openclaw security audit --deep
-openclaw security audit --fix
+mightyclaw doctor
+mightyclaw security audit --deep
+mightyclaw security audit --fix
 ```
 
 ## Why Non-Developers Can Adopt It Faster
@@ -180,7 +180,14 @@ The adoption strategy is:
 
 ## From Source
 
-If you want to run this repo directly:
+If you want the published npm package:
+
+```bash
+npm install -g @m37labs/mightyclaw@latest
+mightyclaw onboard --install-daemon
+```
+
+If you want to run this repo directly in local development:
 
 ```bash
 git clone https://github.com/openclaw/openclaw.git
@@ -191,10 +198,10 @@ pnpm build
 pnpm openclaw onboard --install-daemon
 ```
 
-For local development:
+For local development, keep using:
 
 ```bash
-pnpm gateway:watch
+pnpm openclaw gateway --port 18789
 ```
 
 ## Keep Dev Separate
