@@ -220,6 +220,10 @@ unset OPENCLAW_HOME OPENCLAW_STATE_DIR OPENCLAW_CONFIG_PATH OPENCLAW_PROFILE
 
 To keep MightyClaw current with upstream OpenClaw while preserving your own product direction, use this flow:
 
+- `main` tracks the original OpenClaw repository (`origin/main`)
+- `mightyclaw` is your product branch for the M37Labs fork
+- `target/mightyclaw` is the branch you publish from your own repository
+
 ```bash
 git switch main
 git pull origin main --rebase
