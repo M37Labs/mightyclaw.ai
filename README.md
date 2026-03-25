@@ -216,6 +216,24 @@ Clear them when switching back to the official install:
 unset OPENCLAW_HOME OPENCLAW_STATE_DIR OPENCLAW_CONFIG_PATH OPENCLAW_PROFILE
 ```
 
+## Fork Workflow
+
+To keep MightyClaw current with upstream OpenClaw while preserving your own product direction, use this flow:
+
+```bash
+git switch main
+git pull origin main --rebase
+git switch mightyclaw
+git rebase main
+git push --force-with-lease target mightyclaw
+```
+
+This keeps:
+
+- `origin/main` as the upstream source of truth
+- `mightyclaw` as your product branch
+- `target/mightyclaw` as your published fork branch
+
 ## Contribution Direction
 
 The contribution standard for this fork is practical clarity.
