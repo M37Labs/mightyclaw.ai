@@ -190,13 +190,15 @@ mightyclaw onboard --install-daemon
 If you want to run this repo directly in local development:
 
 ```bash
-git clone https://github.com/openclaw/openclaw.git
-cd openclaw
+git clone https://github.com/M37Labs/mightyclaw.ai.git
+cd mightyclaw.ai
 pnpm install
 pnpm ui:build
 pnpm build
 pnpm openclaw onboard --install-daemon
 ```
+
+Source checkout note: the published npm command is `mightyclaw`, but local repo development still uses `pnpm openclaw ...`.
 
 For local development, keep using:
 
