@@ -222,6 +222,11 @@ export function agentLogoUrl(basePath: string): string {
   return base ? `${base}/favicon.svg` : "favicon.svg";
 }
 
+export function brandWordmarkUrl(basePath: string): string {
+  const base = basePath?.trim() ? basePath.replace(/\/$/, "") : "";
+  return base ? `${base}/m37labs-logo.jpg` : "m37labs-logo.jpg";
+}
+
 function isLikelyEmoji(value: string) {
   const trimmed = value.trim();
   if (!trimmed) {

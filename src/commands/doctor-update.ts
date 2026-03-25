@@ -1,3 +1,4 @@
+import { PRODUCT_BRAND_NAME } from "../brand.js";
 import { formatCliCommand } from "../cli/command-format.js";
 import { isTruthyEnvValue } from "../infra/env.js";
 import { runGatewayUpdate } from "../infra/update-runner.js";
@@ -45,7 +46,7 @@ export async function maybeOfferUpdateBeforeDoctor(params: {
   const git = await detectOpenClawGitCheckout(params.root);
   if (git === "git") {
     const shouldUpdate = await params.confirm({
-      message: "Update OpenClaw from git before running doctor?",
+      message: `Update ${PRODUCT_BRAND_NAME} from git before running doctor?`,
       initialValue: true,
     });
     if (!shouldUpdate) {

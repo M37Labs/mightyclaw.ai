@@ -1,6 +1,7 @@
 import os from "node:os";
 import path from "node:path";
 import type { Command } from "commander";
+import { PRODUCT_BRAND_NAME } from "../brand.js";
 import type { OpenClawConfig } from "../config/config.js";
 import { loadConfig, writeConfigFile } from "../config/config.js";
 import { resolveStateDir } from "../config/paths.js";
@@ -59,6 +60,8 @@ export type PluginUninstallOptions = {
   force?: boolean;
   dryRun?: boolean;
 };
+
+const PLUGINS_DESCRIPTION = `Manage ${PRODUCT_BRAND_NAME} plugins and extensions`;
 
 function resolvePluginUninstallId(params: {
   rawId: string;
@@ -205,7 +208,7 @@ function formatInstallLines(install: PluginInstallRecord | undefined): string[] 
 export function registerPluginsCli(program: Command) {
   const plugins = program
     .command("plugins")
-    .description("Manage OpenClaw plugins and extensions")
+    .description(PLUGINS_DESCRIPTION)
     .addHelpText(
       "after",
       () =>

@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { PRODUCT_BRAND_NAME } from "../../brand.js";
 import { resolveCommitHash } from "../../infra/git-commit.js";
 import { formatDocsLink } from "../../terminal/links.js";
 import { isRich, theme } from "../../terminal/theme.js";
@@ -116,7 +117,9 @@ export function configureProgramHelp(program: Command, ctx: ProgramContext) {
   ) {
     const commit = resolveCommitHash({ moduleUrl: import.meta.url });
     console.log(
-      commit ? `OpenClaw ${ctx.programVersion} (${commit})` : `OpenClaw ${ctx.programVersion}`,
+      commit
+        ? `${PRODUCT_BRAND_NAME} ${ctx.programVersion} (${commit})`
+        : `${PRODUCT_BRAND_NAME} ${ctx.programVersion}`,
     );
     process.exit(0);
   }

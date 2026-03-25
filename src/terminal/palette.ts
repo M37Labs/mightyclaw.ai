@@ -1,12 +1,11 @@
-// Lobster palette tokens for CLI/UI theming. Use this palette for all CLI color output.
-// Keep in sync with docs/cli/index.md (CLI palette section).
+// M37Labs palette tokens for CLI/UI theming. Use this palette for all CLI color output.
 export const LOBSTER_PALETTE = {
-  accent: "#FF5A2D",
-  accentBright: "#FF7A3D",
-  accentDim: "#D14A22",
-  info: "#FF8A5B",
-  success: "#2FBF71",
-  warn: "#FFB020",
-  error: "#E23D2D",
-  muted: "#8B7F77",
+  accent: "#FF7A00",
+  accentBright: "#9CFF6B",
+  accentDim: "#FF4D2D",
+  info: "#8BFFB0",
+  success: "#49D17D",
+  warn: "#FFC14D",
+  error: "#FF5A4F",
+  muted: "#8C847C",
 } as const;

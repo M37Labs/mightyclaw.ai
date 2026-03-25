@@ -447,7 +447,7 @@ describe("update-cli", () => {
         options: { json: false },
         assert: () => {
           const logs = vi.mocked(defaultRuntime.log).mock.calls.map((call) => call[0]);
-          expect(logs.join("\n")).toContain("OpenClaw update status");
+          expect(logs.join("\n")).toContain("MightyClaw update status");
         },
       },
       {
@@ -1099,9 +1099,7 @@ describe("update-cli", () => {
 
         const logLines = vi.mocked(defaultRuntime.log).mock.calls.map((call) => String(call[0]));
         expect(
-          logLines.some((line) =>
-            line.includes("Leveled up! New skills unlocked. You're welcome."),
-          ),
+          logLines.some((line) => line.includes("Version updated. Control plane refreshed.")),
         ).toBe(true);
       });
     } finally {

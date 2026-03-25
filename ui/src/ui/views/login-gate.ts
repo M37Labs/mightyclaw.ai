@@ -1,20 +1,26 @@
 import { html } from "lit";
+import {
+  PRODUCT_BRAND_COMPANY,
+  PRODUCT_BRAND_DOMAIN,
+  PRODUCT_BRAND_LOGO_ALT,
+} from "../../../../src/brand.ts";
 import { t } from "../../i18n/index.ts";
 import type { AppViewState } from "../app-view-state.ts";
 import { icons } from "../icons.ts";
 import { normalizeBasePath } from "../navigation.ts";
-import { agentLogoUrl } from "./agents-utils.ts";
+import { brandWordmarkUrl } from "./agents-utils.ts";
 
 export function renderLoginGate(state: AppViewState) {
   const basePath = normalizeBasePath(state.basePath ?? "");
-  const faviconSrc = agentLogoUrl(basePath);
+  const wordmarkSrc = brandWordmarkUrl(basePath);
 
   return html`
     <div class="login-gate">
       <div class="login-gate__card">
         <div class="login-gate__header">
-          <img class="login-gate__logo" src=${faviconSrc} alt="OpenClaw" />
-          <div class="login-gate__title">OpenClaw</div>
+          <img class="login-gate__logo" src=${wordmarkSrc} alt=${PRODUCT_BRAND_LOGO_ALT} />
+          <div class="login-gate__title">${PRODUCT_BRAND_DOMAIN}</div>
+          <div class="login-gate__eyebrow">${PRODUCT_BRAND_COMPANY}</div>
           <div class="login-gate__sub">${t("login.subtitle")}</div>
         </div>
         <div class="login-gate__form">
@@ -119,7 +125,7 @@ export function renderLoginGate(state: AppViewState) {
           <div class="login-gate__docs">
             <a
               class="session-link"
-              href="https://docs.openclaw.ai/web/dashboard"
+              href="https://mightyclaw.ai/web/dashboard"
               target="_blank"
               rel="noreferrer"
             >${t("overview.connection.docsLink")}</a>

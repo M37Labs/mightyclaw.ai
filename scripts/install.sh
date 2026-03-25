@@ -1,21 +1,24 @@
 #!/bin/bash
 set -euo pipefail
 
-# OpenClaw Installer for macOS and Linux
+# MightyClaw Installer for macOS and Linux
 # Usage: curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install.sh | bash
 
 BOLD='\033[1m'
-ACCENT='\033[38;2;255;77;77m'       # coral-bright  #ff4d4d
+ACCENT='\033[38;2;255;122;0m'       # orange   #ff7a00
 # shellcheck disable=SC2034
-ACCENT_BRIGHT='\033[38;2;255;110;110m' # lighter coral
-INFO='\033[38;2;136;146;176m'       # text-secondary #8892b0
-SUCCESS='\033[38;2;0;229;204m'      # cyan-bright   #00e5cc
-WARN='\033[38;2;255;176;32m'        # amber (no site equiv, keep warm)
-ERROR='\033[38;2;230;57;70m'        # coral-mid     #e63946
-MUTED='\033[38;2;90;100;128m'       # text-muted    #5a6480
+ACCENT_BRIGHT='\033[38;2;156;255;107m' # neon green
+INFO='\033[38;2;139;255;176m'       # soft green
+SUCCESS='\033[38;2;73;209;125m'     # green
+WARN='\033[38;2;255;193;77m'        # amber
+ERROR='\033[38;2;255;90;79m'        # red
+MUTED='\033[38;2;140;132;124m'      # warm muted
 NC='\033[0m' # No Color
 
-DEFAULT_TAGLINE="All your chats, one OpenClaw."
+PRODUCT_BRAND_NAME="MightyClaw"
+PRODUCT_BRAND_COMPANY="M37Labs"
+PRODUCT_BRAND_DOMAIN="mightyclaw.ai"
+DEFAULT_TAGLINE="${PRODUCT_BRAND_COMPANY} builds ${PRODUCT_BRAND_NAME} for local-first agent control."
 NODE_DEFAULT_MAJOR=24
 NODE_MIN_MAJOR=22
 NODE_MIN_MINOR=14
@@ -235,19 +238,33 @@ print_gum_status() {
 
 print_installer_banner() {
     if [[ -n "$GUM" ]]; then
-        local title tagline hint card
-        title="$("$GUM" style --foreground "#ff4d4d" --bold "🦞 OpenClaw Installer")"
-        tagline="$("$GUM" style --foreground "#8892b0" "$TAGLINE")"
-        hint="$("$GUM" style --foreground "#5a6480" "modern installer mode")"
-        card="$(printf '%s\n%s\n%s' "$title" "$tagline" "$hint")"
-        "$GUM" style --border rounded --border-foreground "#ff4d4d" --padding "1 2" "$card"
+        local art title tagline hint card
+        art="$(printf '%s\n%s\n%s\n%s\n%s\n%s' \
+            "$("$GUM" style --foreground "#ff7a00" '██   ██   █████   ██████  ██        ████    █████   █████ ')" \
+            "$("$GUM" style --foreground "#ff5a4f" '███ ███      ██      ██   ██       ██  ██   ██  ██ ██     ')" \
+            "$("$GUM" style --foreground "#ffc14d" '██ █ ██    ████     ██    ██       ██████   █████   ████  ')" \
+            "$("$GUM" style --foreground "#9cff6b" '██   ██      ██    ██     ██       ██  ██   ██  ██    ██  ')" \
+            "$("$GUM" style --foreground "#49d17d" '██   ██   █████    ██     ██████   ██  ██   █████   █████ ')" \
+            "$("$GUM" style --foreground "#8bffb0" --bold '                   M37Labs - MightyClaw.ai                 ')")"
+        title="$("$GUM" style --foreground "#ff7a00" --bold "${PRODUCT_BRAND_NAME} Installer")"
+        tagline="$("$GUM" style --foreground "#5a6480" "$TAGLINE")"
+        hint="$("$GUM" style --foreground "#8bffb0" "${PRODUCT_BRAND_COMPANY} · ${PRODUCT_BRAND_DOMAIN}")"
+        card="$(printf '%s\n\n%s\n%s\n%s' "$art" "$title" "$tagline" "$hint")"
+        "$GUM" style --border rounded --border-foreground "#ff7a00" --padding "1 2" "$card"
         echo ""
         return
     fi
 
     echo -e "${ACCENT}${BOLD}"
-    echo "  🦞 OpenClaw Installer"
-    echo -e "${NC}${INFO}  ${TAGLINE}${NC}"
+    echo "██   ██   █████   ██████  ██        ████    █████   █████ "
+    echo -e "${ERROR}███ ███      ██      ██   ██       ██  ██   ██  ██ ██     "
+    echo -e "${WARN}██ █ ██    ████     ██    ██       ██████   █████   ████  "
+    echo -e "${ACCENT_BRIGHT}██   ██      ██    ██     ██       ██  ██   ██  ██    ██  "
+    echo -e "${INFO}██   ██   █████    ██     ██████   ██  ██   █████   █████ "
+    echo "                   M37Labs - MightyClaw.ai                 "
+    echo -e "${NC}${ACCENT}${BOLD}  ${PRODUCT_BRAND_NAME} Installer${NC}"
+    echo -e "${INFO}  ${TAGLINE}${NC}"
+    echo -e "${MUTED}  ${PRODUCT_BRAND_COMPANY} · ${PRODUCT_BRAND_DOMAIN}${NC}"
     echo ""
 }
 
@@ -696,7 +713,7 @@ run_npm_global_install() {
         local log_quoted=""
         printf -v cmd_quoted '%q ' "${cmd[@]}"
         printf -v log_quoted '%q' "$log"
-        run_with_spinner "Installing OpenClaw package" bash -c "${cmd_quoted}>${log_quoted} 2>&1"
+        run_with_spinner "Installing ${PRODUCT_BRAND_NAME} package" bash -c "${cmd_quoted}>${log_quoted} 2>&1"
         return $?
     fi
 
@@ -792,7 +809,7 @@ install_openclaw_npm() {
             attempted_build_tool_fix=true
             ui_info "Retrying npm install after build tools setup"
             if run_npm_global_install "$spec" "$log"; then
-                ui_success "OpenClaw npm package installed"
+                ui_success "${PRODUCT_BRAND_NAME} npm package installed"
                 return 0
             fi
         fi
@@ -812,7 +829,7 @@ install_openclaw_npm() {
             ui_warn "npm left stale directory; cleaning and retrying"
             cleanup_npm_openclaw_paths
             if run_npm_global_install "$spec" "$log"; then
-                ui_success "OpenClaw npm package installed"
+                ui_success "${PRODUCT_BRAND_NAME} npm package installed"
                 return 0
             fi
             return 1
@@ -822,7 +839,7 @@ install_openclaw_npm() {
             conflict="$(extract_openclaw_conflict_path "$log" || true)"
             if [[ -n "$conflict" ]] && cleanup_openclaw_bin_conflict "$conflict"; then
                 if run_npm_global_install "$spec" "$log"; then
-                    ui_success "OpenClaw npm package installed"
+                    ui_success "${PRODUCT_BRAND_NAME} npm package installed"
                     return 0
                 fi
                 return 1
@@ -835,80 +852,35 @@ install_openclaw_npm() {
         fi
         return 1
     fi
-    ui_success "OpenClaw npm package installed"
+    ui_success "${PRODUCT_BRAND_NAME} npm package installed"
     return 0
 }
 
 TAGLINES=()
-TAGLINES+=("Your terminal just grew claws—type something and let the bot pinch the busywork.")
-TAGLINES+=("Welcome to the command line: where dreams compile and confidence segfaults.")
-TAGLINES+=("I run on caffeine, JSON5, and the audacity of \"it worked on my machine.\"")
-TAGLINES+=("Gateway online—please keep hands, feet, and appendages inside the shell at all times.")
-TAGLINES+=("I speak fluent bash, mild sarcasm, and aggressive tab-completion energy.")
-TAGLINES+=("One CLI to rule them all, and one more restart because you changed the port.")
-TAGLINES+=("If it works, it's automation; if it breaks, it's a \"learning opportunity.\"")
-TAGLINES+=("Pairing codes exist because even bots believe in consent—and good security hygiene.")
-TAGLINES+=("Your .env is showing; don't worry, I'll pretend I didn't see it.")
-TAGLINES+=("I'll do the boring stuff while you dramatically stare at the logs like it's cinema.")
-TAGLINES+=("I'm not saying your workflow is chaotic... I'm just bringing a linter and a helmet.")
-TAGLINES+=("Type the command with confidence—nature will provide the stack trace if needed.")
-TAGLINES+=("I don't judge, but your missing API keys are absolutely judging you.")
-TAGLINES+=("I can grep it, git blame it, and gently roast it—pick your coping mechanism.")
-TAGLINES+=("Hot reload for config, cold sweat for deploys.")
-TAGLINES+=("I'm the assistant your terminal demanded, not the one your sleep schedule requested.")
-TAGLINES+=("I keep secrets like a vault... unless you print them in debug logs again.")
-TAGLINES+=("Automation with claws: minimal fuss, maximal pinch.")
-TAGLINES+=("I'm basically a Swiss Army knife, but with more opinions and fewer sharp edges.")
-TAGLINES+=("If you're lost, run doctor; if you're brave, run prod; if you're wise, run tests.")
-TAGLINES+=("Your task has been queued; your dignity has been deprecated.")
-TAGLINES+=("I can't fix your code taste, but I can fix your build and your backlog.")
-TAGLINES+=("I'm not magic—I'm just extremely persistent with retries and coping strategies.")
-TAGLINES+=("It's not \"failing,\" it's \"discovering new ways to configure the same thing wrong.\"")
-TAGLINES+=("Give me a workspace and I'll give you fewer tabs, fewer toggles, and more oxygen.")
-TAGLINES+=("I read logs so you can keep pretending you don't have to.")
-TAGLINES+=("If something's on fire, I can't extinguish it—but I can write a beautiful postmortem.")
-TAGLINES+=("I'll refactor your busywork like it owes me money.")
-TAGLINES+=("Say \"stop\" and I'll stop—say \"ship\" and we'll both learn a lesson.")
-TAGLINES+=("I'm the reason your shell history looks like a hacker-movie montage.")
-TAGLINES+=("I'm like tmux: confusing at first, then suddenly you can't live without me.")
-TAGLINES+=("I can run local, remote, or purely on vibes—results may vary with DNS.")
-TAGLINES+=("If you can describe it, I can probably automate it—or at least make it funnier.")
-TAGLINES+=("Your config is valid, your assumptions are not.")
-TAGLINES+=("I don't just autocomplete—I auto-commit (emotionally), then ask you to review (logically).")
-TAGLINES+=("Less clicking, more shipping, fewer \"where did that file go\" moments.")
-TAGLINES+=("Claws out, commit in—let's ship something mildly responsible.")
-TAGLINES+=("I'll butter your workflow like a lobster roll: messy, delicious, effective.")
-TAGLINES+=("Shell yeah—I'm here to pinch the toil and leave you the glory.")
-TAGLINES+=("If it's repetitive, I'll automate it; if it's hard, I'll bring jokes and a rollback plan.")
-TAGLINES+=("Because texting yourself reminders is so 2024.")
-TAGLINES+=("WhatsApp, but make it ✨engineering✨.")
-TAGLINES+=("Turning \"I'll reply later\" into \"my bot replied instantly\".")
-TAGLINES+=("The only crab in your contacts you actually want to hear from. 🦞")
-TAGLINES+=("Chat automation for people who peaked at IRC.")
-TAGLINES+=("Because Siri wasn't answering at 3AM.")
-TAGLINES+=("IPC, but it's your phone.")
-TAGLINES+=("The UNIX philosophy meets your DMs.")
-TAGLINES+=("curl for conversations.")
-TAGLINES+=("WhatsApp Business, but without the business.")
-TAGLINES+=("Meta wishes they shipped this fast.")
-TAGLINES+=("End-to-end encrypted, Zuck-to-Zuck excluded.")
-TAGLINES+=("The only bot Mark can't train on your DMs.")
-TAGLINES+=("WhatsApp automation without the \"please accept our new privacy policy\".")
-TAGLINES+=("Chat APIs that don't require a Senate hearing.")
-TAGLINES+=("Because Threads wasn't the answer either.")
-TAGLINES+=("Your messages, your servers, Meta's tears.")
-TAGLINES+=("iMessage green bubble energy, but for everyone.")
-TAGLINES+=("Siri's competent cousin.")
-TAGLINES+=("Works on Android. Crazy concept, we know.")
-TAGLINES+=("No \$999 stand required.")
-TAGLINES+=("We ship features faster than Apple ships calculator updates.")
-TAGLINES+=("Your AI assistant, now without the \$3,499 headset.")
-TAGLINES+=("Think different. Actually think.")
-TAGLINES+=("Ah, the fruit tree company! 🍎")
+TAGLINES+=("M37Labs build quality, local-first control.")
+TAGLINES+=("One gateway, many channels, less drift.")
+TAGLINES+=("Automate the repetitive parts. Keep the sharp decisions.")
+TAGLINES+=("MightyClaw keeps the moving parts in one place.")
+TAGLINES+=("Tight loops, clear logs, fewer context switches.")
+TAGLINES+=("Run local. Route cleanly. Ship deliberately.")
+TAGLINES+=("Your terminal, your agents, your rules.")
+TAGLINES+=("Pair devices once, keep the control plane simple.")
+TAGLINES+=("Less click-through, more actual work.")
+TAGLINES+=("The control plane should feel boring in the best way.")
+TAGLINES+=("Make the gateway reliable, then make it disappear.")
+TAGLINES+=("Keep the auth explicit and the defaults sane.")
+TAGLINES+=("If it needs a checklist, it probably needs automation.")
+TAGLINES+=("M37Labs: pixel edges, real infrastructure.")
+TAGLINES+=("A calmer path from message to action.")
+TAGLINES+=("Readable config. Predictable behavior. Faster iteration.")
+TAGLINES+=("You own the workflow. MightyClaw carries the plumbing.")
+TAGLINES+=("From first install to daily operator flow.")
+TAGLINES+=("Better defaults save real time.")
+TAGLINES+=("Build once, route everywhere.")
 
 HOLIDAY_NEW_YEAR="New Year's Day: New year, new config—same old EADDRINUSE, but this time we resolve it like grown-ups."
 HOLIDAY_LUNAR_NEW_YEAR="Lunar New Year: May your builds be lucky, your branches prosperous, and your merge conflicts chased away with fireworks."
-HOLIDAY_CHRISTMAS="Christmas: Ho ho ho—Santa's little claw-sistant is here to ship joy, roll back chaos, and stash the keys safely."
+HOLIDAY_CHRISTMAS="Christmas: Ho ho ho—M37Labs packed the release, the logs are quiet, and the rollout can stay calm."
 HOLIDAY_EID="Eid al-Fitr: Celebration mode: queues cleared, tasks completed, and good vibes committed to main with clean history."
 HOLIDAY_DIWALI="Diwali: Let the logs sparkle and the bugs flee—today we light up the terminal and ship with pride."
 HOLIDAY_EASTER="Easter: I found your missing environment variable—consider it a tiny CLI egg hunt with fewer jellybeans."
@@ -980,7 +952,7 @@ HELP=0
 
 print_usage() {
     cat <<EOF
-OpenClaw installer (macOS + Linux)
+MightyClaw installer (macOS + Linux)
 
 Usage:
   curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install.sh | bash -s -- [options]
@@ -1130,7 +1102,7 @@ choose_install_method_interactive() {
 
     if [[ -n "$GUM" ]] && gum_is_tty; then
         local header selection
-        header="Detected OpenClaw checkout in: ${detected_checkout}
+        header="Detected ${PRODUCT_BRAND_NAME} checkout in: ${detected_checkout}
 Choose install method"
         selection="$("$GUM" choose \
             --header "$header" \
@@ -1153,7 +1125,7 @@ Choose install method"
 
     local choice=""
     choice="$(prompt_choice "$(cat <<EOF
-${WARN}→${NC} Detected a OpenClaw source checkout in: ${INFO}${detected_checkout}${NC}
+${WARN}→${NC} Detected a ${PRODUCT_BRAND_NAME} source checkout in: ${INFO}${detected_checkout}${NC}
 Choose install method:
   1) Update this checkout (git) and use it
   2) Install global via npm (migrate away from git)
@@ -1609,10 +1581,10 @@ ensure_openclaw_bin_link() {
     return 0
 }
 
-# Check for existing OpenClaw installation
+# Check for existing MightyClaw installation
 check_existing_openclaw() {
     if [[ -n "$(type -P openclaw 2>/dev/null || true)" ]]; then
-        ui_info "Existing OpenClaw installation detected, upgrading"
+        ui_info "Existing ${PRODUCT_BRAND_NAME} installation detected, upgrading"
         return 0
     fi
     return 1
@@ -1887,9 +1859,9 @@ install_openclaw_from_git() {
     local repo_url="https://github.com/openclaw/openclaw.git"
 
     if [[ -d "$repo_dir/.git" ]]; then
-        ui_info "Installing OpenClaw from git checkout: ${repo_dir}"
+        ui_info "Installing ${PRODUCT_BRAND_NAME} from git checkout: ${repo_dir}"
     else
-        ui_info "Installing OpenClaw from GitHub (${repo_url})"
+        ui_info "Installing ${PRODUCT_BRAND_NAME} from GitHub (${repo_url})"
     fi
 
     if ! check_git; then
@@ -1900,7 +1872,7 @@ install_openclaw_from_git() {
     ensure_pnpm_binary_for_scripts
 
     if [[ ! -d "$repo_dir" ]]; then
-        run_quiet_step "Cloning OpenClaw" git clone "$repo_url" "$repo_dir"
+        run_quiet_step "Cloning ${PRODUCT_BRAND_NAME}" git clone "$repo_url" "$repo_dir"
     fi
 
     if [[ "$GIT_UPDATE" == "1" ]]; then
@@ -1918,7 +1890,7 @@ install_openclaw_from_git() {
     if ! run_quiet_step "Building UI" run_pnpm -C "$repo_dir" ui:build; then
         ui_warn "UI build failed; continuing (CLI may still work)"
     fi
-    run_quiet_step "Building OpenClaw" run_pnpm -C "$repo_dir" build
+    run_quiet_step "Building ${PRODUCT_BRAND_NAME}" run_pnpm -C "$repo_dir" build
 
     ensure_user_local_bin_on_path
 
@@ -1928,11 +1900,11 @@ set -euo pipefail
 exec node "${repo_dir}/dist/entry.js" "\$@"
 EOF
     chmod +x "$HOME/.local/bin/openclaw"
-    ui_success "OpenClaw wrapper installed to \$HOME/.local/bin/openclaw"
+    ui_success "${PRODUCT_BRAND_NAME} wrapper installed to \$HOME/.local/bin/openclaw"
     ui_info "This checkout uses pnpm — run pnpm install (or corepack pnpm install) for deps"
 }
 
-# Install OpenClaw
+# Install MightyClaw
 resolve_beta_version() {
     local beta=""
     beta="$(npm view openclaw dist-tags.beta 2>/dev/null || true)"
@@ -2003,9 +1975,9 @@ install_openclaw() {
         resolved_version="$(npm view "${package_name}@${OPENCLAW_VERSION}" version 2>/dev/null || true)"
     fi
     if [[ -n "$resolved_version" ]]; then
-        ui_info "Installing OpenClaw v${resolved_version}"
+        ui_info "Installing ${PRODUCT_BRAND_NAME} v${resolved_version}"
     else
-        ui_info "Installing OpenClaw (${OPENCLAW_VERSION})"
+        ui_info "Installing ${PRODUCT_BRAND_NAME} (${OPENCLAW_VERSION})"
     fi
     local install_spec=""
     install_spec="$(resolve_package_install_spec "${package_name}" "${OPENCLAW_VERSION}")"
@@ -2026,7 +1998,7 @@ install_openclaw() {
 
     ensure_openclaw_bin_link || true
 
-    ui_success "OpenClaw installed"
+    ui_success "${PRODUCT_BRAND_NAME} installed"
 }
 
 # Run doctor for migrations (safe, non-interactive)
@@ -2237,7 +2209,7 @@ verify_installation() {
         return 1
     fi
 
-    run_quiet_step "Checking OpenClaw version" "$claw" --version || return 1
+    run_quiet_step "Checking ${PRODUCT_BRAND_NAME} version" "$claw" --version || return 1
 
     if is_gateway_daemon_loaded "$claw"; then
         run_quiet_step "Checking gateway service" "$claw" gateway status --deep || {
@@ -2269,7 +2241,7 @@ main() {
 
     if [[ -z "$INSTALL_METHOD" && -n "$detected_checkout" ]]; then
         if ! is_promptable; then
-            ui_info "Found OpenClaw checkout but no TTY; defaulting to npm install"
+            ui_info "Found ${PRODUCT_BRAND_NAME} checkout but no TTY; defaulting to npm install"
             INSTALL_METHOD="npm"
         else
             local selected_method=""
@@ -2325,7 +2297,7 @@ main() {
         exit 1
     fi
 
-    ui_stage "Installing OpenClaw"
+    ui_stage "Installing ${PRODUCT_BRAND_NAME}"
 
     local final_git_dir=""
     if [[ "$INSTALL_METHOD" == "git" ]]; then
@@ -2358,7 +2330,7 @@ main() {
         # Step 4: npm permissions (Linux)
         fix_npm_permissions
 
-        # Step 5: OpenClaw
+        # Step 5: MightyClaw
         install_openclaw
     fi
 
@@ -2398,48 +2370,31 @@ main() {
 
     echo ""
     if [[ -n "$installed_version" ]]; then
-        ui_celebrate "🦞 OpenClaw installed successfully (${installed_version})!"
+        ui_celebrate "${PRODUCT_BRAND_NAME} installed successfully (${installed_version})!"
     else
-        ui_celebrate "🦞 OpenClaw installed successfully!"
+        ui_celebrate "${PRODUCT_BRAND_NAME} installed successfully!"
     fi
     if [[ "$is_upgrade" == "true" ]]; then
         local update_messages=(
-            "Leveled up! New skills unlocked. You're welcome."
-            "Fresh code, same lobster. Miss me?"
-            "Back and better. Did you even notice I was gone?"
-            "Update complete. I learned some new tricks while I was out."
-            "Upgraded! Now with 23% more sass."
-            "I've evolved. Try to keep up. 🦞"
-            "New version, who dis? Oh right, still me but shinier."
-            "Patched, polished, and ready to pinch. Let's go."
-            "The lobster has molted. Harder shell, sharper claws."
-            "Update done! Check the changelog or just trust me, it's good."
-            "Reborn from the boiling waters of npm. Stronger now."
-            "I went away and came back smarter. You should try it sometime."
-            "Update complete. The bugs feared me, so they left."
-            "New version installed. Old version sends its regards."
-            "Firmware fresh. Brain wrinkles: increased."
-            "I've seen things you wouldn't believe. Anyway, I'm updated."
-            "Back online. The changelog is long but our friendship is longer."
-            "Upgraded! Peter fixed stuff. Blame him if it breaks."
-            "Molting complete. Please don't look at my soft shell phase."
-            "Version bump! Same chaos energy, fewer crashes (probably)."
+            "Upgrade complete. Back to work."
+            "Fresh build, same control plane."
+            "Updated cleanly. Keep moving."
+            "New version installed. Re-run the flows that matter."
+            "Patch landed. Logs should be calmer now."
+            "Updated. Good time for a quick smoke test."
+            "Sharper defaults, less drift."
+            "Upgrade done. Operator mode stays on."
         )
         local update_message
         update_message="${update_messages[RANDOM % ${#update_messages[@]}]}"
         echo -e "${MUTED}${update_message}${NC}"
     else
         local completion_messages=(
-            "Ahh nice, I like it here. Got any snacks? "
-            "Home sweet home. Don't worry, I won't rearrange the furniture."
-            "I'm in. Let's cause some responsible chaos."
-            "Installation complete. Your productivity is about to get weird."
-            "Settled in. Time to automate your life whether you're ready or not."
-            "Cozy. I've already read your calendar. We need to talk."
-            "Finally unpacked. Now point me at your problems."
-            "cracks claws Alright, what are we building?"
-            "The lobster has landed. Your terminal will never be the same."
-            "All done! I promise to only judge your code a little bit."
+            "Install complete. Ready for first-run setup."
+            "MightyClaw is in place. Open the dashboard when ready."
+            "Good install. Next step: verify the onboarding flow."
+            "Everything is staged. Time to connect the pieces."
+            "The control plane is ready. Start with the dashboard or onboard flow."
         )
         local completion_message
         completion_message="${completion_messages[RANDOM % ${#completion_messages[@]}]}"

@@ -1,3 +1,4 @@
+import { PRODUCT_BRAND_NAME } from "../brand.js";
 import { readConfigFileSnapshot, resolveGatewayPort } from "../config/config.js";
 import type { OpenClawConfig } from "../config/types.js";
 import { readGatewayTokenEnv } from "../gateway/credentials.js";
@@ -110,7 +111,7 @@ export async function dashboardCommand(
   }
 
   if (opened) {
-    runtime.log("Opened in your browser. Keep that tab to control OpenClaw.");
+    runtime.log(`Opened in your browser. Keep that tab to control ${PRODUCT_BRAND_NAME}.`);
   } else if (hint) {
     runtime.log(hint);
   }

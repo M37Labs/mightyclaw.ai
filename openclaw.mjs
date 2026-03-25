@@ -116,7 +116,7 @@ const buildMissingEntryErrorMessage = async () => {
 
   lines.push("This install looks like an unbuilt source tree or GitHub source archive.");
   lines.push(
-    "Build locally with `pnpm install && pnpm build`, or install a built package instead.",
+    "Build locally with `pnpm install && pnpm build`, or install the published MightyClaw package instead.",
   );
   lines.push(
     "For pinned GitHub installs, use `npm install -g github:openclaw/openclaw#<ref>` instead of a raw `/archive/<ref>.tar.gz` URL.",

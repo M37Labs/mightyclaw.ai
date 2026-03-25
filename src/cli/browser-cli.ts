@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { PRODUCT_BRAND_NAME } from "../brand.js";
 import { danger } from "../globals.js";
 import { defaultRuntime } from "../runtime.js";
 import { formatDocsLink } from "../terminal/links.js";
@@ -18,7 +19,7 @@ import { formatHelpExamples } from "./help-format.js";
 export function registerBrowserCli(program: Command) {
   const browser = program
     .command("browser")
-    .description("Manage OpenClaw's dedicated browser (Chrome/Chromium)")
+    .description(`Manage ${PRODUCT_BRAND_NAME}'s dedicated browser (Chrome/Chromium)`)
     .option("--browser-profile <name>", "Browser profile name (default from config)")
     .option("--json", "Output machine-readable JSON", false)
     .addHelpText(

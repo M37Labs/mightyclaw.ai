@@ -1,3 +1,4 @@
+import { PRODUCT_BRAND_NAME } from "../brand.js";
 import { formatCliCommand } from "../cli/command-format.js";
 import type {
   GatewayAuthChoice,
@@ -36,15 +37,15 @@ async function requireRiskAcknowledgement(params: {
     [
       "Security warning — please read.",
       "",
-      "OpenClaw is a hobby project and still in beta. Expect sharp edges.",
-      "By default, OpenClaw is a personal agent: one trusted operator boundary.",
+      `${PRODUCT_BRAND_NAME} is still evolving. Expect sharp edges.`,
+      `By default, ${PRODUCT_BRAND_NAME} is a personal agent: one trusted operator boundary.`,
       "This bot can read files and run actions if tools are enabled.",
       "A bad prompt can trick it into doing unsafe things.",
       "",
-      "OpenClaw is not a hostile multi-tenant boundary by default.",
+      `${PRODUCT_BRAND_NAME} is not a hostile multi-tenant boundary by default.`,
       "If multiple users can message one tool-enabled agent, they share that delegated tool authority.",
       "",
-      "If you’re not comfortable with security hardening and access control, don’t run OpenClaw.",
+      `If you’re not comfortable with security hardening and access control, don’t run ${PRODUCT_BRAND_NAME}.`,
       "Ask someone experienced to help before enabling tools or exposing it to the internet.",
       "",
       "Recommended baseline:",
@@ -59,7 +60,7 @@ async function requireRiskAcknowledgement(params: {
       "openclaw security audit --deep",
       "openclaw security audit --fix",
       "",
-      "Must read: https://docs.openclaw.ai/gateway/security",
+      "Must read: https://mightyclaw.ai/gateway/security",
     ].join("\n"),
     "Security",
   );
@@ -81,7 +82,7 @@ export async function runSetupWizard(
 ) {
   const onboardHelpers = await import("../commands/onboard-helpers.js");
   onboardHelpers.printWizardHeader(runtime);
-  await prompter.intro("OpenClaw setup");
+  await prompter.intro(`${PRODUCT_BRAND_NAME} setup`);
   await requireRiskAcknowledgement({ opts, prompter });
 
   const snapshot = await readConfigFileSnapshot();
@@ -94,7 +95,7 @@ export async function runSetupWizard(
         [
           ...snapshot.issues.map((iss) => `- ${iss.path}: ${iss.message}`),
           "",
-          "Docs: https://docs.openclaw.ai/gateway/configuration",
+          "Docs: https://mightyclaw.ai/gateway/configuration",
         ].join("\n"),
         "Config issues",
       );

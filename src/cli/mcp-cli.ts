@@ -1,5 +1,6 @@
 import { Command } from "commander";
 import { parseConfigValue } from "../auto-reply/reply/config-value.js";
+import { PRODUCT_BRAND_NAME } from "../brand.js";
 import {
   listConfiguredMcpServers,
   setConfiguredMcpServer,
@@ -18,7 +19,7 @@ function printJson(value: unknown): void {
 }
 
 export function registerMcpCli(program: Command) {
-  const mcp = program.command("mcp").description("Manage OpenClaw MCP server config");
+  const mcp = program.command("mcp").description(`Manage ${PRODUCT_BRAND_NAME} MCP server config`);
 
   mcp
     .command("list")

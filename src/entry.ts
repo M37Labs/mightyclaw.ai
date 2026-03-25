@@ -3,6 +3,7 @@ import { spawn } from "node:child_process";
 import { enableCompileCache } from "node:module";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { PRODUCT_BRAND_NAME } from "./brand.js";
 import { isRootHelpInvocation, isRootVersionInvocation } from "./cli/argv.js";
 import { parseCliContainerArgs, resolveCliContainerTarget } from "./cli/container-target.js";
 import { applyCliProfileEnv, parseCliProfileArgs } from "./cli/profile.js";
@@ -109,7 +110,11 @@ if (
     Promise.all([import("./version.js"), import("./infra/git-commit.js")])
       .then(([{ VERSION }, { resolveCommitHash }]) => {
         const commit = resolveCommitHash({ moduleUrl: import.meta.url });
-        console.log(commit ? `OpenClaw ${VERSION} (${commit})` : `OpenClaw ${VERSION}`);
+        console.log(
+          commit
+            ? `${PRODUCT_BRAND_NAME} ${VERSION} (${commit})`
+            : `${PRODUCT_BRAND_NAME} ${VERSION}`,
+        );
         process.exit(0);
       })
       .catch((error) => {

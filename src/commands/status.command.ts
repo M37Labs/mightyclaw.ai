@@ -1,3 +1,4 @@
+import { PRODUCT_BRAND_NAME } from "../brand.js";
 import { formatCliCommand } from "../cli/command-format.js";
 import { withProgress } from "../cli/progress.js";
 import { resolveGatewayPort } from "../config/config.js";
@@ -464,7 +465,7 @@ export async function statusCommand(
     },
   ];
 
-  runtime.log(theme.heading("OpenClaw status"));
+  runtime.log(theme.heading(`${PRODUCT_BRAND_NAME} status`));
   runtime.log("");
   runtime.log(theme.heading("Overview"));
   runtime.log(

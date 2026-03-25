@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { DEFAULT_BOOTSTRAP_FILENAME } from "../agents/workspace.js";
+import { PRODUCT_BRAND_NAME } from "../brand.js";
 import { formatCliCommand } from "../cli/command-format.js";
 import {
   buildGatewayInstallPlan,
@@ -244,8 +245,8 @@ export async function finalizeSetupWizard(
       await prompter.note(
         [
           "Docs:",
-          "https://docs.openclaw.ai/gateway/health",
-          "https://docs.openclaw.ai/gateway/troubleshooting",
+          "https://mightyclaw.ai/gateway/health",
+          "https://mightyclaw.ai/gateway/troubleshooting",
         ].join("\n"),
         "Health check help",
       );
@@ -329,7 +330,7 @@ export async function finalizeSetupWizard(
         : undefined,
       `Gateway WS: ${links.wsUrl}`,
       gatewayStatusLine,
-      "Docs: https://docs.openclaw.ai/web/control-ui",
+      "Docs: https://mightyclaw.ai/web/control-ui",
     ]
       .filter(Boolean)
       .join("\n"),
@@ -411,8 +412,8 @@ export async function finalizeSetupWizard(
         [
           `Dashboard link (with token): ${authedUrl}`,
           controlUiOpened
-            ? "Opened in your browser. Keep that tab to control OpenClaw."
-            : "Copy/paste this URL in a browser on this machine to control OpenClaw.",
+            ? `Opened in your browser. Keep that tab to control ${PRODUCT_BRAND_NAME}.`
+            : `Copy/paste this URL in a browser on this machine to control ${PRODUCT_BRAND_NAME}.`,
           controlUiOpenHint,
         ]
           .filter(Boolean)
@@ -430,15 +431,14 @@ export async function finalizeSetupWizard(
   }
 
   await prompter.note(
-    [
-      "Back up your agent workspace.",
-      "Docs: https://docs.openclaw.ai/concepts/agent-workspace",
-    ].join("\n"),
+    ["Back up your agent workspace.", "Docs: https://mightyclaw.ai/concepts/agent-workspace"].join(
+      "\n",
+    ),
     "Workspace backup",
   );
 
   await prompter.note(
-    "Running agents on your computer is risky — harden your setup: https://docs.openclaw.ai/security",
+    "Running agents on your computer is risky — harden your setup: https://mightyclaw.ai/security",
     "Security",
   );
 
@@ -472,8 +472,8 @@ export async function finalizeSetupWizard(
       [
         `Dashboard link (with token): ${authedUrl}`,
         controlUiOpened
-          ? "Opened in your browser. Keep that tab to control OpenClaw."
-          : "Copy/paste this URL in a browser on this machine to control OpenClaw.",
+          ? `Opened in your browser. Keep that tab to control ${PRODUCT_BRAND_NAME}.`
+          : `Copy/paste this URL in a browser on this machine to control ${PRODUCT_BRAND_NAME}.`,
         controlUiOpenHint,
       ]
         .filter(Boolean)
@@ -508,7 +508,7 @@ export async function finalizeSetupWizard(
           "web_search will not work until the provider is re-enabled or a different provider is selected.",
           `  ${formatCliCommand("openclaw configure --section web")}`,
           "",
-          "Docs: https://docs.openclaw.ai/tools/web",
+          "Docs: https://mightyclaw.ai/tools/web",
         ].join("\n"),
         "Web search",
       );
@@ -519,7 +519,7 @@ export async function finalizeSetupWizard(
           "",
           `Provider: ${label}`,
           ...(keySource ? [keySource] : []),
-          "Docs: https://docs.openclaw.ai/tools/web",
+          "Docs: https://mightyclaw.ai/tools/web",
         ].join("\n"),
         "Web search",
       );
@@ -530,8 +530,8 @@ export async function finalizeSetupWizard(
           "web_search will not work until a key is added.",
           `  ${formatCliCommand("openclaw configure --section web")}`,
           "",
-          `Get your key at: ${entry?.signupUrl ?? "https://docs.openclaw.ai/tools/web"}`,
-          "Docs: https://docs.openclaw.ai/tools/web",
+          `Get your key at: ${entry?.signupUrl ?? "https://mightyclaw.ai/tools/web"}`,
+          "Docs: https://mightyclaw.ai/tools/web",
         ].join("\n"),
         "Web search",
       );
@@ -541,7 +541,7 @@ export async function finalizeSetupWizard(
           `Web search (${label}) is configured but disabled.`,
           `Re-enable: ${formatCliCommand("openclaw configure --section web")}`,
           "",
-          "Docs: https://docs.openclaw.ai/tools/web",
+          "Docs: https://mightyclaw.ai/tools/web",
         ].join("\n"),
         "Web search",
       );
@@ -557,7 +557,7 @@ export async function finalizeSetupWizard(
       await prompter.note(
         [
           `Web search is available via ${legacyDetected.label} (auto-detected).`,
-          "Docs: https://docs.openclaw.ai/tools/web",
+          "Docs: https://mightyclaw.ai/tools/web",
         ].join("\n"),
         "Web search",
       );
@@ -567,7 +567,7 @@ export async function finalizeSetupWizard(
           "Web search was skipped. You can enable it later:",
           `  ${formatCliCommand("openclaw configure --section web")}`,
           "",
-          "Docs: https://docs.openclaw.ai/tools/web",
+          "Docs: https://mightyclaw.ai/tools/web",
         ].join("\n"),
         "Web search",
       );
@@ -575,16 +575,16 @@ export async function finalizeSetupWizard(
   }
 
   await prompter.note(
-    'What now: https://openclaw.ai/showcase ("What People Are Building").',
+    'What now: https://mightyclaw.ai/showcase ("What People Are Building").',
     "What now",
   );
 
   await prompter.outro(
     controlUiOpened
-      ? "Onboarding complete. Dashboard opened; keep that tab to control OpenClaw."
+      ? `Onboarding complete. Dashboard opened; keep that tab to control ${PRODUCT_BRAND_NAME}.`
       : seededInBackground
         ? "Onboarding complete. Web UI seeded in the background; open it anytime with the dashboard link above."
-        : "Onboarding complete. Use the dashboard link above to control OpenClaw.",
+        : `Onboarding complete. Use the dashboard link above to control ${PRODUCT_BRAND_NAME}.`,
   );
 
   return { launchedTui };

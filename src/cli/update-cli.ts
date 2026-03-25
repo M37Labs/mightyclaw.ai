@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { PRODUCT_BRAND_NAME } from "../brand.js";
 import { defaultRuntime } from "../runtime.js";
 import { formatDocsLink } from "../terminal/links.js";
 import { theme } from "../terminal/theme.js";
@@ -35,7 +36,7 @@ export function registerUpdateCli(program: Command) {
   program.enablePositionalOptions();
   const update = program
     .command("update")
-    .description("Update OpenClaw and inspect update channel status")
+    .description(`Update ${PRODUCT_BRAND_NAME} and inspect update channel status`)
     .option("--json", "Output result as JSON", false)
     .option("--no-restart", "Skip restarting the gateway service after a successful update")
     .option("--dry-run", "Preview update actions without making changes", false)

@@ -1,5 +1,6 @@
 import path from "node:path";
 import { confirm, isCancel } from "@clack/prompts";
+import { PRODUCT_BRAND_COMPANY, PRODUCT_BRAND_NAME } from "../../brand.js";
 import {
   checkShellCompletionStatus,
   ensureCompletionCacheExists,
@@ -81,26 +82,16 @@ const SERVICE_REFRESH_PATH_ENV_KEYS = [
 ] as const;
 
 const UPDATE_QUIPS = [
-  "Leveled up! New skills unlocked. You're welcome.",
-  "Fresh code, same lobster. Miss me?",
-  "Back and better. Did you even notice I was gone?",
-  "Update complete. I learned some new tricks while I was out.",
-  "Upgraded! Now with 23% more sass.",
-  "I've evolved. Try to keep up.",
-  "New version, who dis? Oh right, still me but shinier.",
-  "Patched, polished, and ready to pinch. Let's go.",
-  "The lobster has molted. Harder shell, sharper claws.",
-  "Update done! Check the changelog or just trust me, it's good.",
-  "Reborn from the boiling waters of npm. Stronger now.",
-  "I went away and came back smarter. You should try it sometime.",
-  "Update complete. The bugs feared me, so they left.",
-  "New version installed. Old version sends its regards.",
-  "Firmware fresh. Brain wrinkles: increased.",
-  "I've seen things you wouldn't believe. Anyway, I'm updated.",
-  "Back online. The changelog is long but our friendship is longer.",
-  "Upgraded! Peter fixed stuff. Blame him if it breaks.",
-  "Molting complete. Please don't look at my soft shell phase.",
-  "Version bump! Same chaos energy, fewer crashes (probably).",
+  "Version updated. Control plane refreshed.",
+  "Fresh build, same workspace.",
+  "Update complete. Re-open the dashboard if needed.",
+  "New version installed. Iterate again.",
+  `${PRODUCT_BRAND_NAME} is up to date.`,
+  `${PRODUCT_BRAND_COMPANY} shipped another pass.`,
+  "Patch applied. Gateway ready.",
+  "Updated cleanly. Keep moving.",
+  "New build in place. Old bugs can file an appeal.",
+  "Upgrade complete. The diff was worth it.",
 ];
 
 function pickUpdateQuip(): string {
@@ -159,7 +150,7 @@ async function resolvePackageRuntimePreflightError(params: {
   }
   const targetLabel = status.version ?? target;
   return [
-    `Node ${process.versions.node ?? "unknown"} is too old for openclaw@${targetLabel}.`,
+    `Node ${process.versions.node ?? "unknown"} is too old for ${PRODUCT_BRAND_NAME} (${targetLabel}).`,
     `The requested package requires ${status.nodeEngine}.`,
     "Upgrade Node to 22.14+ or Node 24, then rerun `openclaw update`.",
     "Bare `npm i -g openclaw` can silently install an older compatible release.",
@@ -929,7 +920,7 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
 
   const showProgress = !opts.json && process.stdout.isTTY;
   if (!opts.json) {
-    defaultRuntime.log(theme.heading("Updating OpenClaw..."));
+    defaultRuntime.log(theme.heading(`Updating ${PRODUCT_BRAND_NAME}...`));
     defaultRuntime.log("");
   }
 
@@ -997,7 +988,7 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
     if (result.reason === "not-git-install") {
       defaultRuntime.log(
         theme.warn(
-          `Skipped: this OpenClaw install isn't a git checkout, and the package manager couldn't be detected. Update via your package manager, then run \`${replaceCliName(formatCliCommand("openclaw doctor"), CLI_NAME)}\` and \`${replaceCliName(formatCliCommand("openclaw gateway restart"), CLI_NAME)}\`.`,
+          `Skipped: this ${PRODUCT_BRAND_NAME} install isn't a git checkout, and the package manager couldn't be detected. Update via your package manager, then run \`${replaceCliName(formatCliCommand("openclaw doctor"), CLI_NAME)}\` and \`${replaceCliName(formatCliCommand("openclaw gateway restart"), CLI_NAME)}\`.`,
         ),
       );
       defaultRuntime.log(

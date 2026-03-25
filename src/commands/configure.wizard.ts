@@ -1,5 +1,6 @@
 import fsPromises from "node:fs/promises";
 import nodePath from "node:path";
+import { PRODUCT_BRAND_NAME } from "../brand.js";
 import { formatCliCommand } from "../cli/command-format.js";
 import type { OpenClawConfig } from "../config/config.js";
 import { readConfigFileSnapshot, resolveGatewayPort, writeConfigFile } from "../config/config.js";
@@ -104,8 +105,8 @@ async function runGatewayHealthCheck(params: {
     note(
       [
         "Docs:",
-        "https://docs.openclaw.ai/gateway/health",
-        "https://docs.openclaw.ai/gateway/troubleshooting",
+        "https://mightyclaw.ai/gateway/health",
+        "https://mightyclaw.ai/gateway/troubleshooting",
       ].join("\n"),
       "Health check help",
     );
@@ -195,7 +196,7 @@ async function promptWebToolsConfig(
     [
       "Web search lets your agent look things up online using the `web_search` tool.",
       "Choose a provider. Some providers need an API key, and some work key-free.",
-      "Docs: https://docs.openclaw.ai/tools/web",
+      "Docs: https://mightyclaw.ai/tools/web",
     ].join("\n"),
     "Web search",
   );
@@ -221,7 +222,7 @@ async function promptWebToolsConfig(
         [
           "No web search providers are currently available under this plugin policy.",
           "Enable plugins or remove deny rules, then rerun configure.",
-          "Docs: https://docs.openclaw.ai/tools/web",
+          "Docs: https://mightyclaw.ai/tools/web",
         ].join("\n"),
         "Web search",
       );
@@ -269,8 +270,8 @@ async function promptWebToolsConfig(
         note(
           [
             `${entry.label} works without an API key.`,
-            "OpenClaw enabled the plugin and selected it as your web_search provider.",
-            `Docs: ${entry.docsUrl ?? "https://docs.openclaw.ai/tools/web"}`,
+            `${PRODUCT_BRAND_NAME} enabled the plugin and selected it as your web_search provider.`,
+            `Docs: ${entry.docsUrl ?? "https://mightyclaw.ai/tools/web"}`,
           ].join("\n"),
           "Web search",
         );
@@ -303,7 +304,7 @@ async function promptWebToolsConfig(
               "No key stored yet — web_search won't work until a key is available.",
               `Store your ${credentialLabel} here or set ${envVarNames} in the Gateway environment.`,
               `Get your API key at: ${entry.signupUrl}`,
-              "Docs: https://docs.openclaw.ai/tools/web",
+              "Docs: https://mightyclaw.ai/tools/web",
             ].join("\n"),
             "Web search",
           );
@@ -343,7 +344,11 @@ export async function runConfigureWizard(
   runtime: RuntimeEnv = defaultRuntime,
 ) {
   try {
-    intro(opts.command === "update" ? "OpenClaw update wizard" : "OpenClaw configure");
+    intro(
+      opts.command === "update"
+        ? `${PRODUCT_BRAND_NAME} update wizard`
+        : `${PRODUCT_BRAND_NAME} configure`,
+    );
     const prompter = createClackPrompter();
 
     const snapshot = await readConfigFileSnapshot();
@@ -357,7 +362,7 @@ export async function runConfigureWizard(
           [
             ...snapshot.issues.map((iss) => `- ${iss.path}: ${iss.message}`),
             "",
-            "Docs: https://docs.openclaw.ai/gateway/configuration",
+            "Docs: https://mightyclaw.ai/gateway/configuration",
           ].join("\n"),
           "Config issues",
         );
@@ -714,7 +719,7 @@ export async function runConfigureWizard(
         `Web UI: ${links.httpUrl}`,
         `Gateway WS: ${links.wsUrl}`,
         gatewayStatusLine,
-        "Docs: https://docs.openclaw.ai/web/control-ui",
+        "Docs: https://mightyclaw.ai/web/control-ui",
       ].join("\n"),
       "Control UI",
     );

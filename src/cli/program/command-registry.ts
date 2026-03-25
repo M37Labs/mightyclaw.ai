@@ -220,7 +220,7 @@ const coreEntries: CoreCliEntry[] = [
     commands: [
       {
         name: "browser",
-        description: "Manage OpenClaw's dedicated browser (Chrome/Chromium)",
+        description: "Manage MightyClaw's dedicated browser (Chrome/Chromium)",
         hasSubcommands: true,
       },
     ],

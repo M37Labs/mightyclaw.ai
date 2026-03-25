@@ -1,3 +1,5 @@
+import { PRODUCT_BRAND_NAME } from "../../brand.js";
+
 export type CoreCliCommandDescriptor = {
   name: string;
   description: string;
@@ -28,7 +30,7 @@ export const CORE_CLI_COMMAND_DESCRIPTORS = [
   },
   {
     name: "backup",
-    description: "Create and verify local backup archives for OpenClaw state",
+    description: "Create and verify local backup archives for agent state",
     hasSubcommands: true,
   },
   {
@@ -88,7 +90,7 @@ export const CORE_CLI_COMMAND_DESCRIPTORS = [
   },
   {
     name: "browser",
-    description: "Manage OpenClaw's dedicated browser (Chrome/Chromium)",
+    description: `Manage ${PRODUCT_BRAND_NAME}'s dedicated browser (Chrome/Chromium)`,
     hasSubcommands: true,
   },
 ] as const satisfies ReadonlyArray<CoreCliCommandDescriptor>;

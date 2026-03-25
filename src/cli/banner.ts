@@ -1,3 +1,4 @@
+import { PRODUCT_BRAND_NAME, PRODUCT_BRAND_TERMINAL_ART } from "../brand.js";
 import { resolveCommitHash } from "../infra/git-commit.js";
 import { visibleWidth } from "../terminal/ansi.js";
 import { isRich, theme } from "../terminal/theme.js";
@@ -57,8 +58,8 @@ export function formatCliBannerLine(version: string, options: BannerOptions = {}
   const commitLabel = commit ?? "unknown";
   const tagline = pickTagline({ ...options, mode: resolveTaglineMode(options) });
   const rich = options.richTty ?? isRich();
-  const title = "🦞 OpenClaw";
-  const prefix = "🦞 ";
+  const title = PRODUCT_BRAND_NAME;
+  const prefix = "MC ";
   const columns = options.columns ?? process.stdout.columns ?? 120;
   const plainBaseLine = `${title} ${version} (${commitLabel})`;
   const plainFullLine = tagline ? `${plainBaseLine} — ${tagline}` : plainBaseLine;
@@ -92,46 +93,28 @@ export function formatCliBannerLine(version: string, options: BannerOptions = {}
   return `${line1}\n${line2}`;
 }
 
-const LOBSTER_ASCII = [
-  "▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄",
-  "██░▄▄▄░██░▄▄░██░▄▄▄██░▀██░██░▄▄▀██░████░▄▄▀██░███░██",
-  "██░███░██░▀▀░██░▄▄▄██░█░█░██░█████░████░▀▀░██░█░█░██",
-  "██░▀▀▀░██░█████░▀▀▀██░██▄░██░▀▀▄██░▀▀░█░██░██▄▀▄▀▄██",
-  "▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀",
-  "                  🦞 OPENCLAW 🦞                    ",
-  " ",
-];
-
 export function formatCliBannerArt(options: BannerOptions = {}): string {
   const rich = options.richTty ?? isRich();
   if (!rich) {
-    return LOBSTER_ASCII.join("\n");
+    return PRODUCT_BRAND_TERMINAL_ART.join("\n");
   }
 
   const colorChar = (ch: string) => {
     if (ch === "█") {
-      return theme.accentBright(ch);
-    }
-    if (ch === "░") {
-      return theme.accentDim(ch);
-    }
-    if (ch === "▀") {
       return theme.accent(ch);
     }
-    return theme.muted(ch);
+    if (/[A-Z0-9]/.test(ch)) {
+      return theme.info(ch);
+    }
+    if (ch === "·") {
+      return theme.accentDim(ch);
+    }
+    return ch === " " ? ch : theme.muted(ch);
   };
 
-  const colored = LOBSTER_ASCII.map((line) => {
-    if (line.includes("OPENCLAW")) {
-      return (
-        theme.muted("              ") +
-        theme.accent("🦞") +
-        theme.info(" OPENCLAW ") +
-        theme.accent("🦞")
-      );
-    }
-    return splitGraphemes(line).map(colorChar).join("");
-  });
+  const colored = PRODUCT_BRAND_TERMINAL_ART.map((line) =>
+    splitGraphemes(line).map(colorChar).join(""),
+  );
 
   return colored.join("\n");
 }
