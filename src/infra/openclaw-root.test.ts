@@ -188,6 +188,14 @@ describe("resolveOpenClawPackageRoot", () => {
     await expect(resolveOpenClawPackageRoot({ cwd: pkgRoot })).resolves.toBe(pkgRoot);
   });
 
+  it("recognizes the scoped mightyclaw package name", async () => {
+    const pkgRoot = fx("scoped-mightyclaw");
+    setFile(path.join(pkgRoot, "package.json"), JSON.stringify({ name: "@m37labs/mightyclaw" }));
+
+    expect(resolveOpenClawPackageRootSync({ cwd: pkgRoot })).toBe(pkgRoot);
+    await expect(resolveOpenClawPackageRoot({ cwd: pkgRoot })).resolves.toBe(pkgRoot);
+  });
+
   it("async resolver returns null when no package roots exist", async () => {
     await expect(resolveOpenClawPackageRoot({ cwd: fx("missing") })).resolves.toBeNull();
   });

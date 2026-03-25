@@ -51,4 +51,23 @@ describe("resolveWorkspaceTemplateDir", () => {
     const resolved = await resolveWorkspaceTemplateDir({ cwd: distDir, moduleUrl });
     expect(path.normalize(resolved)).toBe(path.resolve("docs", "reference", "templates"));
   });
+
+  it("resolves templates from the published mightyclaw package root", async () => {
+    const root = await makeTempRoot();
+    await fs.writeFile(
+      path.join(root, "package.json"),
+      JSON.stringify({ name: "@m37labs/mightyclaw" }),
+    );
+
+    const templatesDir = path.join(root, "docs", "reference", "templates");
+    await fs.mkdir(templatesDir, { recursive: true });
+    await fs.writeFile(path.join(templatesDir, "AGENTS.md"), "# ok\n");
+
+    const distDir = path.join(root, "dist");
+    await fs.mkdir(distDir, { recursive: true });
+    const moduleUrl = pathToFileURL(path.join(distDir, "workspace-templates.mjs")).toString();
+
+    const resolved = await resolveWorkspaceTemplateDir({ cwd: distDir, moduleUrl });
+    expect(resolved).toBe(templatesDir);
+  });
 });
